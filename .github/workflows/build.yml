@@ -5,32 +5,11 @@ on:
     branches: [ main ]
     paths:
       - 'android/**'
-      - 'windows/**'
       - '.github/workflows/build.yml'
   workflow_dispatch:
 
 jobs:
-  check-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      android: ${{ steps.filter.outputs.android }}
-      windows: ${{ steps.filter.outputs.windows }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            android:
-              - 'android/**'
-              - '.github/workflows/build.yml'
-            windows:
-              - 'windows/**'
-              - '.github/workflows/build.yml'
-
   build-android:
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.android == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,14 +27,20 @@ jobs:
         run: |
           cd android
           mkdir -p gradle/wrapper
+          echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.2-bin.zip" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
           curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-          chmod +x gradlew 2>/dev/null || true
+          echo "#!/bin/sh" > gradlew
+          echo "exec java -cp \"gradle/wrapper/gradle-wrapper.jar\" org.gradle.wrapper.GradleWrapperMain \"\$@\"" >> gradlew
+          chmod +x gradlew
           
       - name: Build APK
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon --stacktrace
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
