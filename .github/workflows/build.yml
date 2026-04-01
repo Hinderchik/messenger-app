@@ -64,24 +64,29 @@ jobs:
           path: android/app/build/outputs/apk/release/*.apk
 
   build-windows:
-    needs: check-changes
-    if: needs.check-changes.outputs.windows == 'true'
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
+  needs: check-changes
+  if: needs.check-changes.outputs.windows == 'true'
+  runs-on: windows-latest
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
       
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+    - name: Configure CMake
+      run: |
+        cd windows
+        mkdir build
+        cd build
+        cmake ..
         
-      - name: Build EXE
-        run: |
-          cd windows
-          mkdir build
-          cd build
-          cl /EHsc /Fe:messenger.exe ..\src\main.cpp /link ws2_32.lib crypt32.lib user32.lib gdi32.lib comctl32.lib
-          
-      - name: Upload EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: messenger-windows
-          path: windows/build/messenger.exe
+    - name: Build EXE
+      run: |
+        cd windows/build
+        cmake --build . --config Release
+        
+    - name: Upload EXE
+      uses: actions/upload-artifact@v4
+      with:
+        name: messenger-windows
+        path: windows/build/Release/messenger.exe
