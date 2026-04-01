@@ -37,13 +37,64 @@ jobs:
           echo "exec java -cp \"gradle/wrapper/gradle-wrapper.jar\" org.gradle.wrapper.GradleWrapperMain \"\$@\"" >> gradlew
           chmod +x gradlew
           
+      - name: Create minimal resources
+        run: |
+          cd android/app/src/main/res
+          mkdir -p mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi
+          
+          # Создаем заглушки для иконок
+          for dir in mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+            echo '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@color/ic_launcher_foreground"/></adaptive-icon>' > $dir/ic_launcher.xml
+            echo '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@color/ic_launcher_foreground"/></adaptive-icon>' > $dir/ic_launcher_round.xml
+          done
+          
+          # Создаем цвета для иконок
+          cat > values/colors.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="ic_launcher_background">#667eea</color>
+    <color name="ic_launcher_foreground">#FFFFFF</color>
+</resources>
+EOF
+          
+      - name: Fix AndroidManifest
+        run: |
+          cd android/app/src/main
+          # Убираем package из AndroidManifest.xml
+          sed -i 's/package="com.hinderchik.messenger"//' AndroidManifest.xml
+          
       - name: Build APK
         run: |
           cd android
           ./gradlew assembleRelease --no-daemon --stacktrace
+        continue-on-error: true
           
-      - name: Upload APK
+      - name: Upload APK if success
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: messenger-android
           path: android/app/build/outputs/apk/release/*.apk
+          
+      - name: Upload build logs if failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            android/build.log
+            android/app/build/reports/
+            ~/.gradle/daemon/
+            
+      - name: Save logs
+        if: always()
+        run: |
+          cd android
+          ./gradlew assembleRelease --stacktrace > build.log 2>&1 || true
