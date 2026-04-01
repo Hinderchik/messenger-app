@@ -34,26 +34,20 @@ jobs:
           echo "exec java -cp \"gradle/wrapper/gradle-wrapper.jar\" org.gradle.wrapper.GradleWrapperMain \"\$@\"" >> gradlew
           chmod +x gradlew
           
-      - name: Create minimal resources
+      - name: Create minimal icons
         run: |
           cd android/app/src/main/res
           mkdir -p mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi
-          for dir in mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
-            echo '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@color/ic_launcher_foreground"/></adaptive-icon>' > $dir/ic_launcher.xml
-            echo '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@color/ic_launcher_foreground"/></adaptive-icon>' > $dir/ic_launcher_round.xml
-          done
-          cat > values/colors.xml << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="ic_launcher_background">#667eea</color>
-    <color name="ic_launcher_foreground">#FFFFFF</color>
-</resources>
-EOF
-          
-      - name: Fix AndroidManifest
-        run: |
-          cd android/app/src/main
-          sed -i 's/package="com.hinderchik.messenger"//' AndroidManifest.xml
+          echo "0" > mipmap-hdpi/ic_launcher.png
+          echo "0" > mipmap-mdpi/ic_launcher.png
+          echo "0" > mipmap-xhdpi/ic_launcher.png
+          echo "0" > mipmap-xxhdpi/ic_launcher.png
+          echo "0" > mipmap-xxxhdpi/ic_launcher.png
+          echo "0" > mipmap-hdpi/ic_launcher_round.png
+          echo "0" > mipmap-mdpi/ic_launcher_round.png
+          echo "0" > mipmap-xhdpi/ic_launcher_round.png
+          echo "0" > mipmap-xxhdpi/ic_launcher_round.png
+          echo "0" > mipmap-xxxhdpi/ic_launcher_round.png
           
       - name: Build APK
         run: |
