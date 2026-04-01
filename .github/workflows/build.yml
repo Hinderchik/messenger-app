@@ -1,0 +1,63 @@
+# .github/workflows/build.yml
+name: Build Messenger
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          
+      - name: Build Windows EXE
+        run: |
+          cd windows
+          npm install
+          npm run build
+          
+      - name: Upload Windows EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: messenger-windows
+          path: windows/dist/*.exe
+
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        
+      - name: Build Android APK
+        run: |
+          cd mobile
+          npm install
+          npx expo prebuild --platform android
+          cd android
+          ./gradlew assembleRelease
+          
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: messenger-android
+          path: mobile/android/app/build/outputs/apk/release/*.apk
