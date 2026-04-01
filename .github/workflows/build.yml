@@ -48,22 +48,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
-      - name: Create app.json
-        run: |
-          echo '{
-            "expo": {
-              "name": "Messenger",
-              "slug": "messenger",
-              "version": "1.0.0",
-              "orientation": "portrait",
-              "userInterfaceStyle": "dark",
-              "android": {
-                "package": "com.hinderchik.messenger"
-              }
-            }
-          }' > mobile/app.json
-          
-      - name: Build Android APK
+      - name: Create app.json and build APK
         run: |
           cd mobile
           npm install
