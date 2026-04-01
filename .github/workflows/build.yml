@@ -69,26 +69,13 @@ EOF
         run: |
           cd android
           ./gradlew assembleRelease --no-daemon --stacktrace
-        continue-on-error: true
           
-      - name: Upload APK if success
-        if: success()
+      - name: Upload APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: messenger-android
-          path: android/app/build/outputs/apk/release/*.apk
-          
-      - name: Upload build logs if failed
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
           path: |
+            android/app/build/outputs/apk/release/*.apk
             android/build.log
             android/app/build/reports/
-            
-      - name: Save logs
-        if: always()
-        run: |
-          cd android
-          ./gradlew assembleRelease --stacktrace > build.log 2>&1 || true
