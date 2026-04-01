@@ -11,6 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Clear gradle cache
+        run: |
+          rm -rf ~/.gradle/caches/
+          rm -rf ~/.gradle/wrapper/
+          
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
@@ -20,6 +25,12 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
+      - name: Clean resources
+        run: |
+          rm -rf android/app/src/main/res/mipmap-* 2>/dev/null || true
+          rm -rf android/app/src/main/res/drawable 2>/dev/null || true
+          rm -rf android/app/src/main/res/mipmap* 2>/dev/null || true
+          
       - name: Create gradle wrapper
         run: |
           cd android
@@ -34,24 +45,10 @@ jobs:
           echo "exec java -cp \"gradle/wrapper/gradle-wrapper.jar\" org.gradle.wrapper.GradleWrapperMain \"\$@\"" >> gradlew
           chmod +x gradlew
           
-      - name: Create minimal icons
-        run: |
-          cd android/app/src/main/res
-          mkdir -p mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi
-          echo "0" > mipmap-hdpi/ic_launcher.png
-          echo "0" > mipmap-mdpi/ic_launcher.png
-          echo "0" > mipmap-xhdpi/ic_launcher.png
-          echo "0" > mipmap-xxhdpi/ic_launcher.png
-          echo "0" > mipmap-xxxhdpi/ic_launcher.png
-          echo "0" > mipmap-hdpi/ic_launcher_round.png
-          echo "0" > mipmap-mdpi/ic_launcher_round.png
-          echo "0" > mipmap-xhdpi/ic_launcher_round.png
-          echo "0" > mipmap-xxhdpi/ic_launcher_round.png
-          echo "0" > mipmap-xxxhdpi/ic_launcher_round.png
-          
       - name: Build APK
         run: |
           cd android
+          ./gradlew clean
           ./gradlew assembleRelease --no-daemon --stacktrace
           
       - name: Upload APK
