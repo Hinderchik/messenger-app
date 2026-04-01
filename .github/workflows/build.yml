@@ -41,14 +41,10 @@ jobs:
         run: |
           cd android/app/src/main/res
           mkdir -p mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi
-          
-          # Создаем заглушки для иконок
           for dir in mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
             echo '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@color/ic_launcher_foreground"/></adaptive-icon>' > $dir/ic_launcher.xml
             echo '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@color/ic_launcher_foreground"/></adaptive-icon>' > $dir/ic_launcher_round.xml
           done
-          
-          # Создаем цвета для иконок
           cat > values/colors.xml << 'EOF'
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -67,7 +63,6 @@ EOF
       - name: Fix AndroidManifest
         run: |
           cd android/app/src/main
-          # Убираем package из AndroidManifest.xml
           sed -i 's/package="com.hinderchik.messenger"//' AndroidManifest.xml
           
       - name: Build APK
@@ -91,7 +86,6 @@ EOF
           path: |
             android/build.log
             android/app/build/reports/
-            ~/.gradle/daemon/
             
       - name: Save logs
         if: always()
