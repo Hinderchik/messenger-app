@@ -1,3 +1,4 @@
+# .github/workflows/build.yml
 name: Build Messenger
 
 on:
@@ -20,10 +21,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
+      - name: Create gradlew
+        run: |
+          cd android
+          curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradlew -o gradlew
+          curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradlew.bat -o gradlew.bat
+          chmod +x gradlew
+          
       - name: Build APK
         run: |
           cd android
-          chmod +x gradlew
           ./gradlew assembleRelease
           
       - name: Upload APK
@@ -37,24 +44,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup vcpkg
+      - name: Install vcpkg dependencies
         run: |
           git clone https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.bat
-          ./vcpkg integrate install
-          
-      - name: Install dependencies
-        run: |
-          cd vcpkg
-          ./vcpkg install websocketpp nlohmann-json cpprestsdk --triplet x64-windows
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg install nlohmann-json cpprestsdk
+          .\vcpkg\vcpkg install websocketpp --head
           
       - name: Configure CMake
         run: |
           cd windows
           mkdir build
           cd build
-          cmake .. -DCMAKE_TOOLCHAIN_FILE=..\..\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
+          cmake .. -DCMAKE_TOOLCHAIN_FILE=..\..\vcpkg\scripts\buildsystems\vcpkg.cmake
           
       - name: Build EXE
         run: |
