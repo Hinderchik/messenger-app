@@ -1,4 +1,5 @@
 package com.hinderchik.messenger
+import com.hinderchik.messenger.R
 
 import android.os.Bundle
 import android.widget.*
