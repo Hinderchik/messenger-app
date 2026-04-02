@@ -1,6 +1,9 @@
-import postgres from 'postgres';
+import pg from 'pg';
 
-const sql = postgres(process.env.DATABASE_URL, {
+const { Pool } = pg;
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
@@ -16,27 +19,32 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Проверяем существует ли пользователь
-    const existing = await sql`
-      SELECT id FROM users WHERE username = ${username}
-    `;
+    const client = await pool.connect();
+    
+    const existing = await client.query(
+      'SELECT id FROM users WHERE username = $1',
+      [username]
+    );
 
-    if (existing.length > 0) {
+    if (existing.rows.length > 0) {
+      client.release();
       return res.status(400).json({ error: 'Username already exists' });
     }
 
-    // Генерируем соль и хеш пароля
     const salt = Math.random().toString(36).substring(2, 15);
-    const hash = require('crypto').createHash('sha256').update(password + salt).digest('hex');
+    const crypto = await import('crypto');
+    const hash = crypto.createHash('sha256').update(password + salt).digest('hex');
 
-    // Создаём пользователя
-    const [user] = await sql`
-      INSERT INTO users (username, email, password_hash, salt, online, last_seen)
-      VALUES (${username}, ${email}, ${hash}, ${salt}, true, NOW())
-      RETURNING id, username
-    `;
+    const result = await client.query(
+      `INSERT INTO users (username, email, password_hash, salt, online, last_seen)
+       VALUES ($1, $2, $3, $4, true, NOW())
+       RETURNING id, username`,
+      [username, email, hash, salt]
+    );
 
-    res.status(200).json({ id: user.id, username: user.username });
+    client.release();
+
+    res.status(200).json({ id: result.rows[0].id, username: result.rows[0].username });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });

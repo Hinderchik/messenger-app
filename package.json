@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "postgres": "^3.4.3"
+    "pg": "^8.11.3"
   }
 }
