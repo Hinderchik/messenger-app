@@ -1,7 +1,18 @@
 {
-  "version": 2,
-  "routes": [
-    { "src": "/(.*\\.css)", "headers": { "Content-Type": "text/css" }, "dest": "/$1" },
-    { "src": "/(.*\\.js)", "headers": { "Content-Type": "application/javascript" }, "dest": "/$1" }
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
+    }
   ]
 }
