@@ -131,17 +131,17 @@
                 android:hint="Сообщение..."
                 android:textColorHint="#999999"
                 android:textColor="#1a1a1a"
-                android:background="@drawable/bg_input"
+                
                 android:padding="12dp"
                 android:maxLines="5"
                 android:inputType="textMultiLine"
                 android:enabled="false"/>
 
-            <ImageButton
+            <Button
                 android:id="@+id/sendButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_send"
+                android:text="➤"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="12dp"
                 android:layout_marginStart="8dp"

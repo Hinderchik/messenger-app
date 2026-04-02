@@ -5,20 +5,28 @@
     android:orientation="vertical"
     android:padding="4dp">
 
-    <TextView
-        android:id="@+id/messageText"
+    <View
+        android:id="@+id/messageBubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="12dp"
-        android:textColor="#fff"
-        android:textSize="14sp"
-        android:maxWidth="250dp"/>
+        android:background="@drawable/bg_message_sent">
 
-    <TextView
-        android:id="@+id/messageTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="10sp"
-        android:textColor="#888"
-        android:layout_marginTop="2dp"/>
+        <TextView
+            android:id="@+id/messageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#ffffff"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/messageTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            android:textColor="#ccffffff"
+            android:layout_marginTop="4dp"/>
+
+    </View>
+
 </LinearLayout>
