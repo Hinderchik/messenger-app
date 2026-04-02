@@ -11,13 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Clear gradle cache
-        run: |
-          rm -rf ~/.gradle/caches/
-          rm -rf ~/.gradle/wrapper/
-          rm -rf android/.gradle
-          rm -rf android/app/build
-          
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
@@ -27,6 +20,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
+      - name: Generate keystore
+        run: |
+          keytool -genkey -v -keystore android/keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass android -keypass android -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown"
+          
+      - name: Create keystore.properties
+        run: |
+          echo "storeFile=../keystore.jks" > android/keystore.properties
+          echo "storePassword=android" >> android/keystore.properties
+          echo "keyAlias=upload" >> android/keystore.properties
+          echo "keyPassword=android" >> android/keystore.properties
+          
       - name: Create drawable resources
         run: |
           mkdir -p android/app/src/main/res/drawable
@@ -47,10 +51,9 @@ jobs:
           echo "exec java -cp \"gradle/wrapper/gradle-wrapper.jar\" org.gradle.wrapper.GradleWrapperMain \"\$@\"" >> gradlew
           chmod +x gradlew
           
-      - name: Build APK
+      - name: Build signed APK
         run: |
           cd android
-          ./gradlew clean
           ./gradlew assembleRelease --no-daemon --stacktrace
           
       - name: Upload APK
