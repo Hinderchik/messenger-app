@@ -1,13 +1,17 @@
 {
   "name": "c.c Messenger",
   "short_name": "c.c",
-  "description": "Быстрый и безопасный мессенджер",
+  "description": "Быстрый и безопасный мессенджер с шифрованием и голосовыми звонками",
   "start_url": "/chat.html",
   "display": "standalone",
   "theme_color": "#17212b",
   "background_color": "#17212b",
   "orientation": "portrait",
   "scope": "/",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["social", "communication", "messaging"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",
@@ -20,6 +24,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
