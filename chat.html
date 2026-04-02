@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Чат - c.c Messenger</title>
+    <title>c.c Messenger</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body class="dark">
     <div class="chat-container">
+        <!-- Боковая панель -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="user-info">
@@ -22,42 +23,59 @@
                     <button id="logoutBtn" class="icon-btn" title="Выйти">🚪</button>
                 </div>
             </div>
+            
             <div class="search-container">
-                <input type="text" id="searchUsers" class="search-input" placeholder="Поиск по нику...">
+                <input type="text" id="searchInput" class="search-input" placeholder="Поиск...">
             </div>
+            
             <div class="tabs">
                 <button class="tab active" data-tab="chats">Чаты</button>
-                <button class="tab" data-tab="users">Контакты</button>
-                <button class="tab" data-tab="channels">Каналы</button>
+                <button class="tab" data-tab="contacts">Контакты</button>
+                <button class="tab" data-tab="groups">Группы</button>
             </div>
+            
+            <!-- Список чатов -->
             <div class="chats-list" id="chatsList"></div>
-            <div class="users-list" id="usersList"></div>
-            <div class="channels-list" id="channelsList" style="display: none;"></div>
+            
+            <!-- Список контактов -->
+            <div class="contacts-list" id="contactsList" style="display: none;"></div>
+            
+            <!-- Список групп -->
+            <div class="groups-list" id="groupsList" style="display: none;"></div>
         </div>
+        
+        <!-- Область чата -->
         <div class="chat-area">
             <div class="chat-header" id="chatHeader" style="display: none;">
                 <button class="back-button" id="backButton">←</button>
                 <div class="chat-header-info">
-                    <h3 id="chatUserName"></h3>
-                    <span class="chat-header-status" id="onlineStatus"></span>
+                    <h3 id="chatName"></h3>
+                    <span class="chat-header-status" id="chatStatus"></span>
                 </div>
                 <div class="chat-actions">
-                    <button class="chat-action-btn" title="Поиск">🔍</button>
-                    <button class="chat-action-btn" title="Ещё">⋯</button>
+                    <button class="chat-action-btn" id="infoBtn" title="Информация">ℹ️</button>
+                    <button class="chat-action-btn" id="searchMsgBtn" title="Поиск">🔍</button>
                 </div>
             </div>
+            
             <div class="messages-area" id="messagesArea">
                 <div class="empty-chat">Выберите чат для начала общения</div>
             </div>
+            
             <div class="typing-indicator" id="typingIndicator" style="display: none;">Печатает...</div>
+            
             <div class="input-area" id="inputArea" style="display: none;">
-                <button class="attach-btn" id="attachBtn">📎</button>
+                <button class="attach-btn" id="attachBtn" title="Прикрепить">📎</button>
                 <input type="text" id="messageInput" class="message-input" placeholder="Сообщение..." autocomplete="off">
                 <button id="sendBtn" class="send-btn">📤</button>
             </div>
         </div>
     </div>
+    
+    <!-- Кнопка создания -->
     <button class="fab" id="fabBtn">+</button>
+    
+    <!-- Модальное окно создания -->
     <div class="modal" id="createModal">
         <div class="modal-content">
             <h3>Создать</h3>
@@ -72,6 +90,7 @@
             </div>
         </div>
     </div>
+    
     <script src="/app.js"></script>
 </body>
 </html>
