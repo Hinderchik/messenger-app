@@ -1,4 +1,0 @@
--keep class com.hinderchik.messenger.** { *; }
--keep class org.java_websocket.** { *; }
--keep class okhttp3.** { *; }
--keep class com.google.gson.** { *; }

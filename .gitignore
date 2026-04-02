@@ -1,21 +1,9 @@
-# Android
-android/.gradle/
-android/app/build/
-android/local.properties
-android/.idea/
-android/*.iml
-
-# Windows
-windows/build/
-windows/vcpkg_installed/
-
-# OS
+node_modules/
 .DS_Store
-Thumbs.db
-
-# IDE
+*.log
+.env
+dist/
+build/
 .vscode/
 .idea/
-
-# Logs
-*.log
+.vercel

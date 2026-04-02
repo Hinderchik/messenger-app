@@ -1,9 +1,0 @@
-{
-    "name": "messenger",
-    "version": "1.0.0",
-    "dependencies": [
-        "websocketpp",
-        "nlohmann-json",
-        "cpprestsdk"
-    ]
-}

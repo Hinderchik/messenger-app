@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат - Messenger</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <div class="avatar" id="userAvatar"></div>
+                    <span id="username"></span>
+                </div>
+                <button id="logoutBtn" class="logout-btn">Выйти</button>
+            </div>
+            <div class="search">
+                <input type="text" id="searchUsers" placeholder="Поиск...">
+            </div>
+            <div class="users-list" id="usersList"></div>
+        </div>
+        <div class="chat-area">
+            <div class="chat-header" id="chatHeader" style="display: none;">
+                <div class="chat-user">
+                    <div class="avatar" id="chatAvatar"></div>
+                    <div>
+                        <h3 id="chatUserName"></h3>
+                        <span class="online-status" id="onlineStatus"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="messages-area" id="messagesArea">
+                <div class="empty-chat">Выберите чат для начала общения</div>
+            </div>
+            <div class="input-area" id="inputArea" style="display: none;">
+                <input type="text" id="messageInput" placeholder="Сообщение..." autocomplete="off">
+                <button id="sendBtn">📤</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
