@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>c.c Messenger</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark">
     <div class="chat-container">
@@ -94,3 +94,10 @@
     <script src="/app.js"></script>
 </body>
 </html>
+<style>
+/* Fallback стили если не загрузился основной CSS */
+body { background: #17212b; color: white; font-family: system-ui; }
+.chat-container { display: flex; height: 100vh; }
+.sidebar { width: 300px; background: #1f2a36; }
+.chat-area { flex: 1; background: #17212b; }
+</style>
