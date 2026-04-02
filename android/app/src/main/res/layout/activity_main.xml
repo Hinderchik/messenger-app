@@ -5,7 +5,6 @@
     android:orientation="horizontal"
     android:background="#f5f5f5">
 
-    <!-- Список пользователей -->
     <LinearLayout
         android:layout_width="320dp"
         android:layout_height="match_parent"
@@ -28,14 +27,6 @@
                 android:textSize="24sp"
                 android:textStyle="bold"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Общайтесь с друзьями"
-                android:textColor="#ccffffff"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp"/>
-
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -46,7 +37,6 @@
 
     </LinearLayout>
 
-    <!-- Область чата -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
@@ -54,7 +44,6 @@
         android:orientation="vertical"
         android:background="#f5f5f5">
 
-        <!-- Хедер чата -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -91,7 +80,6 @@
 
         </LinearLayout>
 
-        <!-- Пустое состояние -->
         <TextView
             android:id="@+id/emptyStateView"
             android:layout_width="wrap_content"
@@ -103,7 +91,6 @@
             android:layout_gravity="center"
             android:visibility="visible"/>
 
-        <!-- Список сообщений -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/messagesRecyclerView"
             android:layout_width="match_parent"
@@ -112,7 +99,6 @@
             android:padding="16dp"
             android:visibility="gone"/>
 
-        <!-- Область ввода -->
         <LinearLayout
             android:id="@+id/inputArea"
             android:layout_width="match_parent"
@@ -131,10 +117,8 @@
                 android:hint="Сообщение..."
                 android:textColorHint="#999999"
                 android:textColor="#1a1a1a"
-                
                 android:padding="12dp"
                 android:maxLines="5"
-                android:inputType="textMultiLine"
                 android:enabled="false"/>
 
             <Button
@@ -142,8 +126,8 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:text="➤"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp"
+                android:textSize="20sp"
+                android:background="#667eea"
                 android:layout_marginStart="8dp"
                 android:enabled="false"/>
 
