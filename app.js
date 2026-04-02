@@ -1,5 +1,18 @@
-const API_URL = '';
+// Определяем API URL в зависимости от окружения
+const isElectron = typeof window !== 'undefined' && window.process && window.process.type === 'renderer';
+const isCapacitor = typeof window !== 'undefined' && window.hasOwnProperty('Capacitor');
 
+let API_URL = '';
+
+if (isElectron || isCapacitor) {
+    // Для нативных приложений — полный URL
+    API_URL = 'https://messenger-app-roan-two.vercel.app';
+} else {
+    // Для веб-версии — относительный путь
+    API_URL = '';
+}
+
+// Регистрация
 if (document.getElementById('registerForm')) {
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -22,6 +35,7 @@ if (document.getElementById('registerForm')) {
     });
 }
 
+// Вход
 if (document.getElementById('loginForm')) {
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -44,6 +58,7 @@ if (document.getElementById('loginForm')) {
     });
 }
 
+// Чат
 if (window.location.pathname.includes('chat.html')) {
     let currentUserId = localStorage.getItem('userId');
     let currentChat = null;
@@ -63,7 +78,7 @@ if (window.location.pathname.includes('chat.html')) {
             const res = await fetch(`${API_URL}/api/users?userId=${currentUserId}`);
             const users = await res.json();
             const container = document.getElementById('usersList');
-            if (container && Array.isArray(users)) {
+            if (container && Array.isArray(users) && users.length > 0) {
                 container.innerHTML = users.map(user => `
                     <div class="user-item" data-id="${user.id}">
                         <div class="user-avatar">${(user.username || 'U')[0].toUpperCase()}</div>
@@ -74,6 +89,8 @@ if (window.location.pathname.includes('chat.html')) {
                 document.querySelectorAll('.user-item').forEach(el => {
                     el.addEventListener('click', () => selectChat(el.dataset.id));
                 });
+            } else if (container && (!users || users.length === 0)) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e9eae;">Нет других пользователей</div>';
             }
         } catch (error) {
             console.error('Load users error:', error);
@@ -82,11 +99,12 @@ if (window.location.pathname.includes('chat.html')) {
     
     async function selectChat(userId) {
         currentChat = userId;
-        const userName = document.querySelector(`.user-item[data-id="${userId}"] .user-name`).innerText;
+        const userItem = document.querySelector(`.user-item[data-id="${userId}"]`);
+        const userName = userItem ? userItem.querySelector('.user-name').innerText : 'Пользователь';
         document.getElementById('chatUserName').innerText = userName;
         document.getElementById('chatHeader').style.display = 'flex';
         document.getElementById('inputArea').style.display = 'flex';
-        document.getElementById('messagesArea').innerHTML = '';
+        document.getElementById('messagesArea').innerHTML = '<div style="text-align: center; padding: 20px;">Загрузка сообщений...</div>';
         const chatAvatar = document.getElementById('chatAvatar');
         if (chatAvatar) {
             chatAvatar.innerText = userName[0].toUpperCase();
@@ -100,12 +118,16 @@ if (window.location.pathname.includes('chat.html')) {
             const messages = await res.json();
             const container = document.getElementById('messagesArea');
             if (container && Array.isArray(messages)) {
-                container.innerHTML = messages.map(msg => `
-                    <div class="message ${msg.from_id === currentUserId ? 'sent' : 'received'}">
-                        <div class="message-bubble">${escapeHtml(msg.text)}</div>
-                        <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
-                    </div>
-                `).join('');
+                if (messages.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e9eae;">Нет сообщений. Напишите что-нибудь!</div>';
+                } else {
+                    container.innerHTML = messages.map(msg => `
+                        <div class="message ${msg.from_id === currentUserId ? 'sent' : 'received'}">
+                            <div class="message-bubble">${escapeHtml(msg.text)}</div>
+                            <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                        </div>
+                    `).join('');
+                }
                 container.scrollTop = container.scrollHeight;
             }
         } catch (error) {
@@ -154,12 +176,83 @@ if (window.location.pathname.includes('chat.html')) {
         });
     }
     
+    const backButton = document.getElementById('backButton');
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('open');
+        });
+    }
+    
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo) {
+        userInfo.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+    }
+    
+    const fabBtn = document.getElementById('fabBtn');
+    if (fabBtn) {
+        fabBtn.addEventListener('click', () => {
+            document.getElementById('createModal').classList.add('active');
+        });
+    }
+    
+    const cancelModal = document.getElementById('cancelModal');
+    if (cancelModal) {
+        cancelModal.addEventListener('click', () => {
+            document.getElementById('createModal').classList.remove('active');
+        });
+    }
+    
+    const confirmCreate = document.getElementById('confirmCreate');
+    if (confirmCreate) {
+        confirmCreate.addEventListener('click', async () => {
+            const type = document.getElementById('createType').value;
+            const name = document.getElementById('createName').value;
+            if (!name) {
+                alert('Введите название');
+                return;
+            }
+            alert(`Создание ${type === 'group' ? 'группы' : 'канала'} "${name}" пока в разработке`);
+            document.getElementById('createModal').classList.remove('active');
+        });
+    }
+    
+    const tabs = document.querySelectorAll('.tab');
+    const chatsList = document.getElementById('chatsList');
+    const usersList = document.getElementById('usersList');
+    const channelsList = document.getElementById('channelsList');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            if (tabName === 'chats') {
+                if (chatsList) chatsList.style.display = 'block';
+                if (usersList) usersList.style.display = 'none';
+                if (channelsList) channelsList.style.display = 'none';
+            } else if (tabName === 'users') {
+                if (chatsList) chatsList.style.display = 'none';
+                if (usersList) usersList.style.display = 'block';
+                if (channelsList) channelsList.style.display = 'none';
+                loadUsers();
+            } else if (tabName === 'channels') {
+                if (chatsList) chatsList.style.display = 'none';
+                if (usersList) usersList.style.display = 'none';
+                if (channelsList) channelsList.style.display = 'block';
+            }
+        });
+    });
+    
     loadUsers();
+    
     setInterval(() => {
         if (currentChat) loadMessages(currentChat);
     }, 3000);
 }
 
+// Настройки
 if (window.location.pathname.includes('settings.html')) {
     const themeSwitch = document.getElementById('themeSwitch');
     const body = document.body;
@@ -181,6 +274,7 @@ if (window.location.pathname.includes('settings.html')) {
             }
         });
     }
+    
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const email = localStorage.getItem('email');
@@ -190,6 +284,7 @@ if (window.location.pathname.includes('settings.html')) {
     if (emailDisplay) emailDisplay.textContent = email || '—';
     const userIdDisplay = document.getElementById('userIdDisplay');
     if (userIdDisplay) userIdDisplay.textContent = userId ? userId.slice(0,8)+'...' : '—';
+    
     const logoutBtnFull = document.getElementById('logoutBtnFull');
     if (logoutBtnFull) {
         logoutBtnFull.addEventListener('click', () => {
