@@ -1,9 +1,4 @@
 node_modules/
-.DS_Store
-*.log
+.vercel/
 .env
-dist/
-build/
-.vscode/
-.idea/
-.vercel
+*.log
