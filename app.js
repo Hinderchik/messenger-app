@@ -1,3 +1,6 @@
+// API URL (твой Vercel домен)
+const API_URL = 'https://messenger.vercel.app';
+
 // Регистрация
 if (document.getElementById('registerForm')) {
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -7,14 +10,13 @@ if (document.getElementById('registerForm')) {
         const password = document.getElementById('password').value;
         
         try {
-            const res = await fetch('/api/register', {
+            const res = await fetch(`${API_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
             });
             
             const data = await res.json();
-            
             if (!res.ok) throw new Error(data.error);
             
             document.getElementById('errorMsg').innerHTML = '<p style="color: green;">✅ Регистрация успешна! Войдите.</p>';
@@ -33,19 +35,17 @@ if (document.getElementById('loginForm')) {
         const password = document.getElementById('password').value;
         
         try {
-            const res = await fetch('/api/login', {
+            const res = await fetch(`${API_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
             
             const data = await res.json();
-            
             if (!res.ok) throw new Error(data.error);
             
             localStorage.setItem('userId', data.id);
             localStorage.setItem('username', data.username);
-            localStorage.setItem('email', user.email);
             window.location.href = 'chat.html';
         } catch (error) {
             document.getElementById('errorMsg').innerHTML = '❌ ' + error.message;
@@ -66,21 +66,23 @@ if (window.location.pathname.includes('chat.html')) {
     document.getElementById('userAvatar').innerText = localStorage.getItem('username')[0].toUpperCase();
     
     async function loadUsers() {
-        const res = await fetch(`/api/users?userId=${currentUserId}`);
+        const res = await fetch(`${API_URL}/api/users?userId=${currentUserId}`);
         const users = await res.json();
         
         const usersList = document.getElementById('usersList');
-        usersList.innerHTML = users.map(user => `
-            <div class="user-item" data-id="${user.id}">
-                <div class="user-avatar">${user.username[0].toUpperCase()}</div>
-                <div class="user-name">${user.username}</div>
-                <div class="online-dot" style="background: ${user.online ? '#4ade80' : '#ccc'}"></div>
-            </div>
-        `).join('');
-        
-        document.querySelectorAll('.user-item').forEach(el => {
-            el.addEventListener('click', () => selectChat(el.dataset.id));
-        });
+        if (usersList) {
+            usersList.innerHTML = users.map(user => `
+                <div class="user-item" data-id="${user.id}">
+                    <div class="user-avatar">${user.username[0].toUpperCase()}</div>
+                    <div class="user-name">${user.username}</div>
+                    <div class="online-dot" style="background: ${user.online ? '#4ade80' : '#ccc'}"></div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.user-item').forEach(el => {
+                el.addEventListener('click', () => selectChat(el.dataset.id));
+            });
+        }
     }
     
     async function selectChat(userId) {
@@ -96,18 +98,19 @@ if (window.location.pathname.includes('chat.html')) {
     }
     
     async function loadMessages(chatId) {
-        const res = await fetch(`/api/messages?userId=${currentUserId}&chatId=${chatId}`);
+        const res = await fetch(`${API_URL}/api/messages?userId=${currentUserId}&chatId=${chatId}`);
         const messages = await res.json();
         
         const messagesArea = document.getElementById('messagesArea');
-        messagesArea.innerHTML = messages.map(msg => `
-            <div class="message ${msg.from_id === currentUserId ? 'sent' : 'received'}">
-                <div class="message-bubble">${escapeHtml(msg.text)}</div>
-                <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
-            </div>
-        `).join('');
-        
-        messagesArea.scrollTop = messagesArea.scrollHeight;
+        if (messagesArea) {
+            messagesArea.innerHTML = messages.map(msg => `
+                <div class="message ${msg.from_id === currentUserId ? 'sent' : 'received'}">
+                    <div class="message-bubble">${escapeHtml(msg.text)}</div>
+                    <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                </div>
+            `).join('');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
     }
     
     async function sendMessage() {
@@ -115,14 +118,10 @@ if (window.location.pathname.includes('chat.html')) {
         const text = input.value.trim();
         if (!text || !currentChat) return;
         
-        const res = await fetch('/api/messages', {
+        const res = await fetch(`${API_URL}/api/messages`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                fromId: currentUserId,
-                toId: currentChat,
-                text: text
-            })
+            body: JSON.stringify({ fromId: currentUserId, toId: currentChat, text })
         });
         
         if (res.ok) {
@@ -137,20 +136,19 @@ if (window.location.pathname.includes('chat.html')) {
         return div.innerHTML;
     }
     
-    document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+    document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
+    document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
     
-    document.getElementById('logoutBtn').addEventListener('click', () => {
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
         localStorage.clear();
         window.location.href = 'login.html';
     });
     
     loadUsers();
     
-    // Polling для обновления сообщений (проще чем WebSocket)
     setInterval(() => {
         if (currentChat) loadMessages(currentChat);
-    }, 2000);
+    }, 3000);
 }
