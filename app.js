@@ -45,6 +45,7 @@ if (document.getElementById('loginForm')) {
             
             localStorage.setItem('userId', data.id);
             localStorage.setItem('username', data.username);
+            localStorage.setItem('email', user.email);
             window.location.href = 'chat.html';
         } catch (error) {
             document.getElementById('errorMsg').innerHTML = '❌ ' + error.message;
@@ -52,7 +53,7 @@ if (document.getElementById('loginForm')) {
     });
 }
 
-// Чат (упрощённая версия)
+// Чат
 if (window.location.pathname.includes('chat.html')) {
     let currentUserId = localStorage.getItem('userId');
     let currentChat = null;
