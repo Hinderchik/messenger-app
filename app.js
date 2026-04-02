@@ -454,3 +454,21 @@ function setupEventListeners() {
 if ('serviceWorker' in navigator && !window.location.pathname.includes('login') && !window.location.pathname.includes('register')) {
     navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed:', err));
 }
+
+// Регистрация Service Worker для PWA
+if ('serviceWorker' in navigator && !window.location.pathname.includes('login') && !window.location.pathname.includes('register')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('SW registered:', reg))
+            .catch(err => console.log('SW registration failed:', err));
+    });
+}
+
+// Запрос разрешения на уведомления
+if ('Notification' in window && !window.location.pathname.includes('login') && !window.location.pathname.includes('register')) {
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        setTimeout(() => {
+            Notification.requestPermission();
+        }, 5000);
+    }
+}
