@@ -20,18 +20,17 @@ export default async function handler(req, res) {
   try {
     const client = await pool.connect();
     
+    // Получаем всех пользователей кроме текущего
     const result = await client.query(
-      `SELECT id, username, online, last_seen 
-       FROM users 
-       WHERE id != $1 
-       ORDER BY online DESC, username ASC`,
+      'SELECT id, username, online, last_seen FROM users WHERE id != $1 ORDER BY online DESC, username ASC',
       [userId]
     );
 
     client.release();
     res.status(200).json(result.rows);
   } catch (error) {
-    console.error('Users error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Users API error:', error);
+    // Возвращаем пустой массив вместо ошибки, чтобы фронтенд не падал
+    res.status(200).json([]);
   }
 }
