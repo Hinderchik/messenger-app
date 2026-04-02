@@ -17,6 +17,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'User ID required' });
   }
 
+  // Проверяем, что userId - валидный UUID
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID format' });
+  }
+
   try {
     const client = await pool.connect();
     
@@ -29,6 +35,6 @@ export default async function handler(req, res) {
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Users API error:', error);
-    res.status(500).json({ error: error.message, stack: error.stack });
+    res.status(500).json({ error: error.message });
   }
 }
