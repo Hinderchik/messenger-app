@@ -13,35 +13,28 @@ import android.widget.TextView
 import android.view.Gravity
 import android.graphics.drawable.GradientDrawable
 import android.graphics.Color
-import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
 import android.text.format.DateUtils
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.*
-import okhttp3.*
-import org.json.JSONObject
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
 data class User(
-    val id: String, 
-    val username: String, 
+    val id: String,
+    val username: String,
     var online: Boolean = false,
     var lastSeen: Long = 0,
     var avatarColor: Int = 0
 )
 
 data class Message(
-    val id: String, 
-    val fromId: String, 
-    val toId: String, 
-    val text: String, 
-    val time: Long, 
-    val isRead: Boolean = true
+    val id: String,
+    val fromId: String,
+    val toId: String,
+    val text: String,
+    val time: Long
 )
 
 class MainActivity : AppCompatActivity() {
@@ -56,14 +49,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var usersRecyclerView: RecyclerView
     private lateinit var messageInput: EditText
     private lateinit var sendButton: ImageButton
-    private lateinit var callButton: ImageButton
-    private lateinit var screenShareButton: ImageButton
     private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var emptyStateView: TextView
     private lateinit var chatTitle: TextView
     private lateinit var chatStatus: TextView
+    private lateinit var emptyStateView: TextView
+    private lateinit var inputArea: LinearLayout
     
-    private val client = OkHttpClient()
     private val prefs by lazy { getSharedPreferences("messenger", MODE_PRIVATE) }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,12 +71,11 @@ class MainActivity : AppCompatActivity() {
         usersRecyclerView = findViewById(R.id.usersRecyclerView)
         messageInput = findViewById(R.id.messageInput)
         sendButton = findViewById(R.id.sendButton)
-        callButton = findViewById(R.id.callButton)
-        screenShareButton = findViewById(R.id.screenShareButton)
         swipeRefresh = findViewById(R.id.swipeRefresh)
-        emptyStateView = findViewById(R.id.emptyStateView)
         chatTitle = findViewById(R.id.chatTitle)
         chatStatus = findViewById(R.id.chatStatus)
+        emptyStateView = findViewById(R.id.emptyStateView)
+        inputArea = findViewById(R.id.inputArea)
         
         chatAdapter = ChatAdapter(messages, "")
         messagesRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -98,9 +88,9 @@ class MainActivity : AppCompatActivity() {
             loadMessages(user.id)
             messageInput.isEnabled = true
             sendButton.isEnabled = true
-            callButton.isEnabled = true
-            screenShareButton.isEnabled = true
+            inputArea.visibility = View.VISIBLE
             emptyStateView.visibility = View.GONE
+            messagesRecyclerView.visibility = View.VISIBLE
         }
         usersRecyclerView.layoutManager = LinearLayoutManager(this)
         usersRecyclerView.adapter = usersAdapter
@@ -108,6 +98,7 @@ class MainActivity : AppCompatActivity() {
         swipeRefresh.setOnRefreshListener {
             loadUsers()
             if (currentChat != null) loadMessages(currentChat!!.id)
+            swipeRefresh.isRefreshing = false
         }
         
         messageInput.setOnEditorActionListener { _, actionId, _ ->
@@ -120,23 +111,13 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupClickListeners() {
         sendButton.setOnClickListener { sendMessage() }
-        
-        callButton.setOnClickListener {
-            currentChat?.let { chat ->
-                Snackbar.make(findViewById(android.R.id.content), "📞 Звонок ${chat.username}...", Snackbar.LENGTH_SHORT).show()
-            }
-        }
-        
-        screenShareButton.setOnClickListener {
-            Snackbar.make(findViewById(android.R.id.content), "📺 Демонстрация экрана", Snackbar.LENGTH_SHORT).show()
-        }
     }
     
     private fun checkAuth() {
         val userId = prefs.getString("userId", null)
         if (userId != null) {
             currentUser = User(userId, prefs.getString("username", "User") ?: "User", true)
-            initApp()
+            loadUsers()
         } else {
             showAuthDialog()
         }
@@ -148,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         val passwordInput = dialogView.findViewById<EditText>(R.id.passwordInput)
         
         MaterialAlertDialogBuilder(this)
-            .setTitle("✨ Messenger")
+            .setTitle("Messenger")
             .setView(dialogView)
             .setPositiveButton("Войти") { _, _ ->
                 val username = usernameInput.text.toString().trim()
@@ -173,16 +154,16 @@ class MainActivity : AppCompatActivity() {
         if (user != null && password == "123") {
             currentUser = user
             prefs.edit().putString("userId", user.id).putString("username", user.username).apply()
-            initApp()
+            loadUsers()
         } else {
-            Snackbar.make(findViewById(android.R.id.content), "❌ Неверный логин или пароль", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(findViewById(android.R.id.content), "Неверный логин или пароль", Snackbar.LENGTH_SHORT).show()
             showAuthDialog()
         }
     }
     
     private fun register(username: String, password: String) {
         if (usersList.any { it.username.equals(username, ignoreCase = true) }) {
-            Snackbar.make(findViewById(android.R.id.content), "❌ Пользователь уже существует", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(findViewById(android.R.id.content), "Пользователь уже существует", Snackbar.LENGTH_SHORT).show()
             showAuthDialog()
             return
         }
@@ -196,22 +177,15 @@ class MainActivity : AppCompatActivity() {
         usersList.add(newUser)
         currentUser = newUser
         prefs.edit().putString("userId", newUser.id).putString("username", newUser.username).apply()
-        initApp()
+        loadUsers()
     }
     
     private fun generateAvatarColor(username: String): Int {
         val colors = listOf(
-            Color.parseColor("#FF6B6B"), Color.parseColor("#4ECDC4"),
-            Color.parseColor("#45B7D1"), Color.parseColor("#96CEB4"),
-            Color.parseColor("#FFEAA7"), Color.parseColor("#DDA0DD")
+            Color.parseColor("#667eea"), Color.parseColor("#4ade80"),
+            Color.parseColor("#f59e0b"), Color.parseColor("#ef4444"), Color.parseColor("#8b5cf6")
         )
         return colors[username.length % colors.size]
-    }
-    
-    private fun initApp() {
-        loadUsers()
-        setupDemoMessages()
-        updateChatStatus()
     }
     
     private fun loadUsers() {
@@ -225,17 +199,6 @@ class MainActivity : AppCompatActivity() {
             ))
         }
         usersAdapter.notifyDataSetChanged()
-        swipeRefresh.isRefreshing = false
-    }
-    
-    private fun setupDemoMessages() {
-        if (messages.isEmpty()) {
-            messages.addAll(listOf(
-                Message("1", "1", currentUser?.id ?: "0", "Привет! Как дела?", System.currentTimeMillis() - 3600000),
-                Message("2", currentUser?.id ?: "0", "1", "Отлично! А у тебя?", System.currentTimeMillis() - 3500000),
-                Message("3", "1", currentUser?.id ?: "0", "Тоже хорошо 😊", System.currentTimeMillis() - 3400000)
-            ))
-        }
     }
     
     private fun loadMessages(userId: String) {
@@ -261,17 +224,12 @@ class MainActivity : AppCompatActivity() {
         )
         
         messages.add(newMessage)
-        chatAdapter.updateMessages(messages.filter { 
-            (it.fromId == currentUser?.id && it.toId == currentChat?.id) ||
-            (it.fromId == currentChat?.id && it.toId == currentUser?.id)
-        }.sortedBy { it.time }, currentUser?.id ?: "")
-        
+        updateChatAdapter()
         messageInput.text.clear()
         messagesRecyclerView.scrollToPosition(chatAdapter.itemCount - 1)
         
-        // Имитация ответа
         if (text.contains("?")) {
-            Handler(mainLooper).postDelayed({
+            android.os.Handler(mainLooper).postDelayed({
                 val reply = Message(
                     id = System.currentTimeMillis().toString(),
                     fromId = currentChat!!.id,
@@ -280,34 +238,33 @@ class MainActivity : AppCompatActivity() {
                     time = System.currentTimeMillis()
                 )
                 messages.add(reply)
-                chatAdapter.updateMessages(messages.filter { 
-                    (it.fromId == currentUser?.id && it.toId == currentChat?.id) ||
-                    (it.fromId == currentChat?.id && it.toId == currentUser?.id)
-                }.sortedBy { it.time }, currentUser?.id ?: "")
+                updateChatAdapter()
                 messagesRecyclerView.scrollToPosition(chatAdapter.itemCount - 1)
             }, 1500)
         }
     }
     
+    private fun updateChatAdapter() {
+        val filtered = messages.filter { 
+            (it.fromId == currentUser?.id && it.toId == currentChat?.id) ||
+            (it.fromId == currentChat?.id && it.toId == currentUser?.id)
+        }.sortedBy { it.time }
+        chatAdapter.updateMessages(filtered, currentUser?.id ?: "")
+    }
+    
     private fun getAutoReply(text: String): String {
         return when {
             text.contains("привет", ignoreCase = true) -> "Привет! 👋"
-            text.contains("как дела", ignoreCase = true) -> "Хорошо, спасибо! А у тебя? 😊"
-            text.contains("пока", ignoreCase = true) -> "Пока! Было приятно пообщаться 👋"
-            text.contains("спасибо", ignoreCase = true) -> "Всегда пожалуйста! 🙏"
-            else -> "Понял, спасибо за сообщение!"
+            text.contains("как дела", ignoreCase = true) -> "Хорошо, спасибо! 😊"
+            text.contains("пока", ignoreCase = true) -> "Пока! 👋"
+            text.contains("спасибо", ignoreCase = true) -> "Пожалуйста! 🙏"
+            else -> "Понял!"
         }
     }
     
     private fun updateChatStatus() {
         currentChat?.let { chat ->
-            chatStatus.text = when {
-                chat.online -> "● В сети"
-                else -> {
-                    val timeAgo = DateUtils.getRelativeTimeSpanString(chat.lastSeen, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
-                    "Был $timeAgo"
-                }
-            }
+            chatStatus.text = if (chat.online) "В сети" else "Был недавно"
             chatStatus.setTextColor(if (chat.online) Color.parseColor("#4ade80") else Color.parseColor("#888888"))
         }
     }
@@ -316,16 +273,8 @@ class MainActivity : AppCompatActivity() {
 class ChatAdapter(private var messages: List<Message>, private var currentUserId: String) :
     RecyclerView.Adapter<ChatAdapter.MessageViewHolder>() {
     
-    private val animation = AnimationUtils.loadAnimation(
-        RecyclerView::class.java.getDeclaredField("context").let { 
-            it.isAccessible = true
-            it.get(RecyclerView::class.java) as android.content.Context
-        } ?: throw IllegalStateException(),
-        android.R.anim.fade_in
-    )
-    
     class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val messageBubble: View = itemView.findViewById(R.id.messageBubble)
+        val messageBubble: LinearLayout = itemView.findViewById(R.id.messageBubble)
         val messageText: TextView = itemView.findViewById(R.id.messageText)
         val messageTime: TextView = itemView.findViewById(R.id.messageTime)
     }
@@ -342,9 +291,9 @@ class ChatAdapter(private var messages: List<Message>, private var currentUserId
         holder.messageText.text = msg.text
         holder.messageTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(msg.time))
         
-        val layoutParams = holder.messageBubble.layoutParams as LinearLayout.LayoutParams
-        layoutParams.gravity = if (isSent) Gravity.END else Gravity.START
-        holder.messageBubble.layoutParams = layoutParams
+        val params = holder.messageBubble.layoutParams as LinearLayout.LayoutParams
+        params.gravity = if (isSent) Gravity.END else Gravity.START
+        holder.messageBubble.layoutParams = params
         
         val drawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
@@ -352,8 +301,6 @@ class ChatAdapter(private var messages: List<Message>, private var currentUserId
             setColor(if (isSent) Color.parseColor("#667eea") else Color.parseColor("#2d2d2d"))
         }
         holder.messageBubble.background = drawable
-        
-        holder.itemView.startAnimation(animation)
     }
     
     override fun getItemCount() = messages.size
@@ -390,13 +337,7 @@ class UsersAdapter(private val users: List<User>, private val onUserClick: (User
         }
         
         holder.username.text = user.username
-        holder.status.text = when {
-            user.online -> "В сети"
-            else -> {
-                val timeAgo = DateUtils.getRelativeTimeSpanString(user.lastSeen, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
-                "Был $timeAgo"
-            }
-        }
+        holder.status.text = if (user.online) "В сети" else "Был недавно"
         holder.statusDot.setBackgroundColor(if (user.online) Color.parseColor("#4ade80") else Color.parseColor("#6b7280"))
         
         holder.itemView.setOnClickListener { onUserClick(user) }
