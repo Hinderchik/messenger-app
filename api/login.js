@@ -1,7 +1,8 @@
-import postgres from 'postgres';
-import crypto from 'crypto';
+import pg from 'pg';
+const { Pool } = pg;
 
-const sql = postgres(process.env.DATABASE_URL, {
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
@@ -17,26 +18,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [user] = await sql`
-      SELECT id, username, password_hash, salt FROM users WHERE username = ${username}
-    `;
+    const client = await pool.connect();
+    const result = await client.query(
+      'SELECT login_user($1, $2) as result',
+      [username, password]
+    );
+    client.release();
 
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    const data = result.rows[0].result;
+    
+    if (data.error) {
+      return res.status(401).json({ error: data.error });
     }
-
-    const hash = crypto.createHash('sha256').update(password + user.salt).digest('hex');
-
-    if (hash !== user.password_hash) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Обновляем статус онлайн
-    await sql`
-      UPDATE users SET online = true, last_seen = NOW() WHERE id = ${user.id}
-    `;
-
-    res.status(200).json({ id: user.id, username: user.username });
+    
+    res.status(200).json(data);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
