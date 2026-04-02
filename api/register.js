@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     client.release();
     res.status(200).json({ id: result.rows[0].id, username: result.rows[0].username });
   } catch (error) {
-    console.error(error);
+    console.error('Registration error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json(result.rows);
     } catch (error) {
-      console.error(error);
+      console.error('Messages error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   } 
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json(result.rows[0]);
     } catch (error) {
-      console.error(error);
+      console.error('Send message error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   } 
