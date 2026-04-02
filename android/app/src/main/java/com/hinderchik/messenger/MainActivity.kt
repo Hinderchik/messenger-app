@@ -15,7 +15,6 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.Color
 import android.view.inputmethod.EditorInfo
 import android.text.format.DateUtils
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import java.text.SimpleDateFormat
@@ -49,7 +48,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var usersRecyclerView: RecyclerView
     private lateinit var messageInput: EditText
     private lateinit var sendButton: ImageButton
-    private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var chatTitle: TextView
     private lateinit var chatStatus: TextView
     private lateinit var emptyStateView: TextView
@@ -71,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         usersRecyclerView = findViewById(R.id.usersRecyclerView)
         messageInput = findViewById(R.id.messageInput)
         sendButton = findViewById(R.id.sendButton)
-        swipeRefresh = findViewById(R.id.swipeRefresh)
         chatTitle = findViewById(R.id.chatTitle)
         chatStatus = findViewById(R.id.chatStatus)
         emptyStateView = findViewById(R.id.emptyStateView)
@@ -95,11 +92,6 @@ class MainActivity : AppCompatActivity() {
         usersRecyclerView.layoutManager = LinearLayoutManager(this)
         usersRecyclerView.adapter = usersAdapter
         
-        swipeRefresh.setOnRefreshListener {
-            loadUsers()
-            if (currentChat != null) loadMessages(currentChat!!.id)
-            swipeRefresh.isRefreshing = false
-        }
         
         messageInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
