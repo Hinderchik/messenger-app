@@ -1,11 +1,13 @@
 {
   "name": "c.c Messenger",
   "short_name": "c.c",
+  "description": "Быстрый и безопасный мессенджер",
   "start_url": "/chat.html",
   "display": "standalone",
   "theme_color": "#17212b",
   "background_color": "#17212b",
   "orientation": "portrait",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon-192.png",
