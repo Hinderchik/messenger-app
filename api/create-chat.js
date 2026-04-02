@@ -7,31 +7,29 @@ const pool = new Pool({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userId } = req.query;
+  const { user1Id, user2Id } = req.body;
 
-  if (!userId) {
-    return res.status(400).json({ error: 'User ID required' });
+  if (!user1Id || !user2Id) {
+    return res.status(400).json({ error: 'User IDs required' });
   }
 
   try {
     const client = await pool.connect();
     
+    // Вызываем функцию создания чата
     const result = await client.query(
-      `SELECT id, username, online, last_seen 
-       FROM users 
-       WHERE id != $1 
-       ORDER BY online DESC, username ASC`,
-      [userId]
+      'SELECT create_private_chat($1, $2) as chat_id',
+      [user1Id, user2Id]
     );
-
+    
     client.release();
-    res.status(200).json(result.rows);
+    res.status(200).json({ chatId: result.rows[0].chat_id });
   } catch (error) {
-    console.error('Users error:', error);
+    console.error('Create chat error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
