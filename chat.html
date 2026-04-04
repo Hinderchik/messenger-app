@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-capable" content="yes">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#17212b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>c.c Messenger</title>
     <style>
         * {
@@ -25,7 +25,7 @@
             width: 100%;
         }
 
-        /* Основной контейнер */
+        /* Мобильная навигация */
         .app {
             display: flex;
             height: 100%;
@@ -33,7 +33,7 @@
             position: relative;
         }
 
-        /* Сайдбар (меню) */
+        /* Сайдбар */
         .sidebar {
             width: 85%;
             max-width: 320px;
@@ -54,7 +54,6 @@
             transform: translateX(0);
         }
 
-        /* Затемнение при открытом меню */
         .overlay {
             position: fixed;
             top: 0;
@@ -70,7 +69,7 @@
             display: block;
         }
 
-        /* Хедер сайдбара */
+        /* Хедер */
         .sidebar-header {
             padding: 20px 16px;
             border-bottom: 1px solid #2c3e50;
@@ -83,6 +82,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            cursor: pointer;
         }
 
         .avatar {
@@ -105,16 +105,6 @@
         .user-status {
             font-size: 13px;
             color: #8e9eae;
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            color: #8e9eae;
-            font-size: 22px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
         }
 
         /* Поиск */
@@ -150,6 +140,7 @@
             color: #8e9eae;
             font-size: 14px;
             border-radius: 10px;
+            cursor: pointer;
         }
 
         .tab.active {
@@ -170,7 +161,6 @@
             padding: 12px 16px;
             border-bottom: 1px solid #2c3e50;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
         .chat-item:active, .contact-item:active {
@@ -234,7 +224,6 @@
             display: none;
         }
 
-        /* Хедер чата */
         .chat-header {
             padding: 12px 16px;
             background: #1f2a36;
@@ -354,12 +343,6 @@
             justify-content: center;
         }
 
-        .empty-chat {
-            text-align: center;
-            color: #8e9eae;
-            margin-top: 100px;
-        }
-
         /* FAB кнопка */
         .fab {
             position: fixed;
@@ -401,10 +384,8 @@
 </head>
 <body>
     <div class="app">
-        <!-- Затемнение -->
         <div class="overlay" id="overlay"></div>
         
-        <!-- Сайдбар -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="user-info">
@@ -430,7 +411,6 @@
             <div class="contacts-list" id="contactsList" style="display: none;"></div>
         </div>
         
-        <!-- Экран чата -->
         <div class="chat-screen hidden" id="chatScreen">
             <div class="chat-header">
                 <button class="back-btn" id="backBtn">←</button>
@@ -458,7 +438,6 @@
         let currentUserId = localStorage.getItem('userId');
         let currentUsername = localStorage.getItem('username');
         let currentChatId = null;
-        let currentChatName = null;
         
         if (!currentUserId) window.location.href = '/login.html';
         
@@ -466,9 +445,7 @@
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
         const chatScreen = document.getElementById('chatScreen');
-        const fabBtn = document.getElementById('fabBtn');
         
-        // Открыть меню
         function openMenu() {
             sidebar.classList.add('open');
             overlay.classList.add('active');
@@ -479,79 +456,65 @@
             overlay.classList.remove('active');
         }
         
-        // Открыть чат
         function openChat(chatId, name) {
             currentChatId = chatId;
-            currentChatName = name;
             document.getElementById('chatName').innerText = name;
             document.getElementById('chatScreen').classList.remove('hidden');
             closeMenu();
             loadMessages();
         }
         
-        // Закрыть чат
         function closeChat() {
             currentChatId = null;
             document.getElementById('chatScreen').classList.add('hidden');
         }
         
-        // Загрузка чатов
         async function loadChats() {
             try {
                 const res = await fetch(`${API_URL}/api/chats?userId=${currentUserId}`);
                 const chats = await res.json();
                 const container = document.getElementById('chatsList');
-                
-                if (container && chats.length) {
+                if (container) {
                     container.innerHTML = chats.map(chat => {
                         let name = chat.name;
                         if (chat.type === 'private' && chat.members) {
                             const other = chat.members.find(m => m.id !== currentUserId);
                             name = other ? other.username : 'Чат';
                         }
-                        return `
-                            <div class="chat-item" onclick="openChat('${chat.id}', '${name}')">
-                                <div class="chat-avatar">${(name || 'C')[0].toUpperCase()}</div>
-                                <div class="chat-info">
-                                    <div class="chat-name">${escapeHtml(name)}</div>
-                                    <div class="chat-message">${escapeHtml(chat.last_message || 'Нет сообщений')}</div>
-                                </div>
-                            </div>
-                        `;
+                        return '<div class="chat-item" onclick="openChat(\'' + chat.id + '\', \'' + name + '\')">' +
+                            '<div class="chat-avatar">' + (name ? name[0].toUpperCase() : 'C') + '</div>' +
+                            '<div class="chat-info">' +
+                                '<div class="chat-name">' + escapeHtml(name) + '</div>' +
+                                '<div class="chat-message">' + escapeHtml(chat.last_message || 'Нет сообщений') + '</div>' +
+                            '</div>' +
+                        '</div>';
                     }).join('');
-                } else {
-                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e9eae;">Нет чатов</div>';
                 }
             } catch(e) { console.error(e); }
         }
         
-        // Загрузка контактов
         async function loadContacts() {
             try {
                 const res = await fetch(`${API_URL}/api/users?userId=${currentUserId}`);
                 const users = await res.json();
                 const container = document.getElementById('contactsList');
-                
-                if (container && users.length) {
-                    container.innerHTML = users.map(user => `
-                        <div class="contact-item" onclick="startChat('${user.id}', '${user.username}')">
-                            <div class="contact-avatar">
-                                ${user.username[0].toUpperCase()}
-                                <div class="online-dot" style="background: ${user.online ? '#4ade80' : '#6b7280'}"></div>
-                            </div>
-                            <div class="contact-info">
-                                <div class="contact-name">${escapeHtml(user.username)}</div>
-                                <div class="contact-status">${user.online ? 'В сети' : 'Был недавно'}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e9eae;">Нет контактов</div>';
+                if (container) {
+                    container.innerHTML = users.map(user => {
+                        return '<div class="contact-item" onclick="startChat(\'' + user.id + '\', \'' + user.username + '\')">' +
+                            '<div class="contact-avatar">' +
+                                user.username[0].toUpperCase() +
+                                '<div class="online-dot" style="background: ' + (user.online ? '#4ade80' : '#6b7280') + '"></div>' +
+                            '</div>' +
+                            '<div class="contact-info">' +
+                                '<div class="contact-name">' + escapeHtml(user.username) + '</div>' +
+                                '<div class="contact-status">' + (user.online ? 'В сети' : 'Был недавно') + '</div>' +
+                            '</div>' +
+                        '</div>';
+                    }).join('');
                 }
             } catch(e) { console.error(e); }
         }
         
-        // Начать чат
         async function startChat(userId, userName) {
             try {
                 const res = await fetch(`${API_URL}/api/create-chat`, {
@@ -567,34 +530,32 @@
             } catch(e) { console.error(e); }
         }
         
-        // Загрузка сообщений
         async function loadMessages() {
             if (!currentChatId) return;
             try {
                 const res = await fetch(`${API_URL}/api/messages?chatId=${currentChatId}&limit=50`);
                 const messages = await res.json();
                 const container = document.getElementById('messages');
-                
-                if (container && messages.length) {
-                    container.innerHTML = messages.map(msg => `
-                        <div class="message ${msg.from_id === currentUserId ? 'sent' : 'received'}">
-                            <div class="bubble">${escapeHtml(msg.text || '[Файл]')}</div>
-                            <div class="time">${formatTime(msg.created_at)}</div>
-                        </div>
-                    `).join('');
-                    container.scrollTop = container.scrollHeight;
-                } else {
-                    container.innerHTML = '<div class="empty-chat">Нет сообщений</div>';
+                if (container) {
+                    if (messages.length === 0) {
+                        container.innerHTML = '<div class="empty-chat">Нет сообщений</div>';
+                    } else {
+                        container.innerHTML = messages.map(msg => {
+                            return '<div class="message ' + (msg.from_id === currentUserId ? 'sent' : 'received') + '">' +
+                                '<div class="bubble">' + escapeHtml(msg.text || '[Файл]') + '</div>' +
+                                '<div class="time">' + formatTime(msg.created_at) + '</div>' +
+                            '</div>';
+                        }).join('');
+                        container.scrollTop = container.scrollHeight;
+                    }
                 }
             } catch(e) { console.error(e); }
         }
         
-        // Отправка
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if (!text || !currentChatId) return;
-            
             try {
                 const res = await fetch(`${API_URL}/api/messages`, {
                     method: 'POST',
@@ -622,12 +583,10 @@
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
         
-        // Табы
         function setupTabs() {
             const tabs = document.querySelectorAll('.tab');
             const chatsList = document.getElementById('chatsList');
             const contactsList = document.getElementById('contactsList');
-            
             tabs.forEach(tab => {
                 tab.onclick = () => {
                     tabs.forEach(t => t.classList.remove('active'));
@@ -645,20 +604,15 @@
             });
         }
         
-        // События
         document.getElementById('backBtn').onclick = closeChat;
         document.getElementById('sendBtn').onclick = sendMessage;
         document.getElementById('messageInput').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-        document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href = '/login.html'; };
         document.getElementById('fabBtn').onclick = () => { document.querySelector('.tab[data-tab="contacts"]').click(); };
-        
-        // Аватар и имя
-        document.getElementById('userAvatar').innerText = (currentUsername || 'U')[0].toUpperCase();
-        document.getElementById('username').innerText = currentUsername || 'User';
-        
-        // Открытие меню по клику на аватар
         document.querySelector('.user-info').onclick = openMenu;
         overlay.onclick = closeMenu;
+        
+        document.getElementById('userAvatar').innerText = (currentUsername || 'U')[0].toUpperCase();
+        document.getElementById('username').innerText = currentUsername || 'User';
         
         setupTabs();
         loadChats();

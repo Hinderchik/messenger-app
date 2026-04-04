@@ -1,0 +1,7 @@
+lib/**
+middleware/**
+*.md
+*.log
+.env*
+.git*
+.github*
