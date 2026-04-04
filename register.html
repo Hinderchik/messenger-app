@@ -24,8 +24,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .logo { font-size: 48px; text-align: center; margin-bottom: 20px; }
-        h2 { text-align: center; margin-bottom: 10px; color: #333; }
-        .info-text { text-align: center; margin-bottom: 25px; font-size: 13px; color: #666; }
+        h2 { text-align: center; margin-bottom: 30px; color: #333; }
         input {
             width: 100%;
             padding: 14px;
@@ -34,7 +33,6 @@
             border-radius: 12px;
             font-size: 16px;
         }
-        input:focus { outline: none; border-color: #667eea; }
         button {
             width: 100%;
             padding: 14px;
@@ -50,32 +48,13 @@
         .success { color: #4ade80; text-align: center; margin-top: 16px; font-size: 14px; }
         .link { text-align: center; margin-top: 20px; color: #666; }
         .link a { color: #667eea; text-decoration: none; }
-        .optional-badge {
-            font-size: 11px;
-            color: #888;
-            margin-top: -12px;
-            margin-bottom: 16px;
-            text-align: right;
-        }
-        .restricted-note {
-            background: #fff5f5;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 12px;
-            color: #c53030;
-            text-align: center;
-        }
+        .optional-badge { font-size: 11px; color: #888; margin-top: -12px; margin-bottom: 16px; text-align: right; }
     </style>
 </head>
 <body>
     <div class="form-card">
         <div class="logo">💬</div>
         <h2>Регистрация</h2>
-        <div class="restricted-note">
-            ⚠️ Без подтверждения email будут доступны только чаты<br>
-            Для создания чатов и каналов потребуется верификация
-        </div>
         <form id="registerForm">
             <input type="text" id="username" placeholder="Имя пользователя" required>
             <input type="email" id="email" placeholder="Email (необязательно)">
@@ -88,40 +67,33 @@
             Уже есть аккаунт? <a href="/login.html">Войти</a>
         </div>
     </div>
-    
+
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value || null;
             const password = document.getElementById('password').value;
-            
             const msgDiv = document.getElementById('errorMsg');
+            msgDiv.innerHTML = '⏳ Регистрация...';
             
             try {
-                const res = await fetch('/api/register', {
+                const res = await fetch('/api/auth?action=register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
                 const data = await res.json();
-                
                 if (!res.ok) throw new Error(data.error);
                 
-                if (email) {
-                    msgDiv.innerHTML = '✅ Регистрация успешна! Письмо отправлено на почту. Подтвердите email для полного доступа.';
-                    msgDiv.className = 'success';
-                } else {
-                    msgDiv.innerHTML = '✅ Регистрация успешна! Вы можете войти. Для создания чатов подтвердите email в настройках.';
-                    msgDiv.className = 'success';
-                }
-                setTimeout(() => window.location.href = '/login.html', 2000);
+                msgDiv.innerHTML = '✅ Регистрация успешна! Теперь войдите.';
+                msgDiv.className = 'success';
+                setTimeout(() => window.location.href = '/login.html', 1500);
             } catch (error) {
                 msgDiv.innerHTML = '❌ ' + error.message;
                 msgDiv.className = 'error';
             }
         });
     </script>
-<script src="/app.js"></script>
 </body>
 </html>
