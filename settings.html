@@ -73,10 +73,9 @@
         .setting-value {
             color: #8e9eae;
             font-size: 14px;
-        }
-        .setting-arrow {
-            color: #8e9eae;
-            margin-left: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         .email-status {
             display: inline-block;
@@ -101,6 +100,7 @@
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
+            transition: background 0.2s;
         }
         .verify-btn:hover {
             background: #2563eb;
@@ -225,14 +225,16 @@
                 <span class="setting-value" id="emailDisplay"></span>
             </div>
             <div class="setting-item" id="verifyItem" style="display: none;">
-                <span class="setting-label">Подтверждение email</span>
+                <span class="setting-label">Статус</span>
                 <span class="setting-value">
                     <span id="emailStatus" class="email-status email-unverified">Не подтверждён</span>
                 </span>
             </div>
             <div class="setting-item" id="resendItem" style="display: none;">
                 <span class="setting-label"></span>
-                <button id="resendBtn" class="verify-btn">Отправить письмо повторно</button>
+                <span class="setting-value">
+                    <button id="resendBtn" class="verify-btn">📧 Отправить письмо повторно</button>
+                </span>
             </div>
             <div class="setting-item">
                 <span class="setting-label">ID пользователя</span>
@@ -260,11 +262,10 @@
         <div class="info-text">c.c Messenger — безопасный мессенджер</div>
     </div>
     
-    <!-- Модальное окно для добавления email -->
     <div class="modal" id="emailModal">
         <div class="modal-content">
             <h3>Добавить email</h3>
-            <p>Введите email для подтверждения аккаунта</p>
+            <p style="margin-bottom: 8px;">Введите email для подтверждения аккаунта</p>
             <input type="email" id="modalEmail" placeholder="example@mail.com">
             <div class="modal-buttons">
                 <button id="cancelModal">Отмена</button>
@@ -284,7 +285,6 @@
         document.getElementById('userIdDisplay').textContent = userId ? userId.slice(0,8)+'...' : '—';
         document.getElementById('emailDisplay').textContent = userEmail || 'Не указан';
         
-        // Статус email
         function updateEmailUI() {
             const verifyItem = document.getElementById('verifyItem');
             const resendItem = document.getElementById('resendItem');
@@ -292,38 +292,36 @@
             
             if (userEmail) {
                 if (userEmailVerified) {
-                    emailStatus.textContent = 'Подтверждён ✓';
+                    emailStatus.textContent = '✓ Подтверждён';
                     emailStatus.className = 'email-status email-verified';
                     if (resendItem) resendItem.style.display = 'none';
                 } else {
-                    emailStatus.textContent = 'Не подтверждён';
+                    emailStatus.textContent = '⚠ Не подтверждён';
                     emailStatus.className = 'email-status email-unverified';
                     if (resendItem) resendItem.style.display = 'flex';
                 }
                 if (verifyItem) verifyItem.style.display = 'flex';
             } else {
-                if (verifyItem) verifyItem.style.display = 'none';
+                if (verifyItem) verifyItem.style.display = 'flex';
                 if (resendItem) resendItem.style.display = 'none';
+                emailStatus.textContent = 'Не указан';
+                emailStatus.className = 'email-status email-unverified';
             }
         }
         
-        // Проверка статуса с сервера
         async function fetchUserStatus() {
             try {
                 const res = await fetch(`${API_URL}/api/user-status?userId=${userId}`);
                 const data = await res.json();
-                if (data.email !== userEmail) {
-                    userEmail = data.email;
-                    userEmailVerified = data.email_verified;
-                    localStorage.setItem('email', userEmail || '');
-                    localStorage.setItem('emailVerified', userEmailVerified);
-                    document.getElementById('emailDisplay').textContent = userEmail || 'Не указан';
-                    updateEmailUI();
-                }
+                userEmail = data.email;
+                userEmailVerified = data.email_verified;
+                localStorage.setItem('email', userEmail || '');
+                localStorage.setItem('emailVerified', userEmailVerified);
+                document.getElementById('emailDisplay').textContent = userEmail || 'Не указан';
+                updateEmailUI();
             } catch(e) { console.error(e); }
         }
         
-        // Добавление/изменение email
         document.getElementById('emailItem').onclick = () => {
             document.getElementById('emailModal').classList.add('active');
             document.getElementById('modalEmail').value = userEmail || '';
@@ -340,34 +338,54 @@
                 return;
             }
             
-            const res = await fetch(`${API_URL}/api/add-email`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, email: newEmail })
-            });
-            const data = await res.json();
+            const btn = document.getElementById('confirmModal');
+            btn.textContent = 'Отправка...';
+            btn.disabled = true;
             
-            if (res.ok) {
-                alert('Письмо отправлено! Проверьте почту для подтверждения.');
-                document.getElementById('emailModal').classList.remove('active');
-                await fetchUserStatus();
-            } else {
-                alert(data.error || 'Ошибка');
+            try {
+                const res = await fetch(`${API_URL}/api/add-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, email: newEmail })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert('✅ Письмо отправлено! Проверьте почту для подтверждения.');
+                    document.getElementById('emailModal').classList.remove('active');
+                    await fetchUserStatus();
+                } else {
+                    alert('❌ ' + (data.error || 'Ошибка'));
+                }
+            } catch(e) {
+                alert('❌ Ошибка соединения');
+            } finally {
+                btn.textContent = 'Отправить';
+                btn.disabled = false;
             }
         };
         
-        // Повторная отправка письма
         document.getElementById('resendBtn').onclick = async () => {
-            const res = await fetch(`${API_URL}/api/resend-verification`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ login: userId })
-            });
-            const data = await res.json();
-            alert(data.message || 'Письмо отправлено');
+            const btn = document.getElementById('resendBtn');
+            btn.textContent = 'Отправка...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(`${API_URL}/api/resend-verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: userId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Письмо отправлено');
+            } catch(e) {
+                alert('Ошибка отправки');
+            } finally {
+                btn.textContent = '📧 Отправить письмо повторно';
+                btn.disabled = false;
+            }
         };
         
-        // Тёмная тема
         const themeSwitch = document.getElementById('themeSwitch');
         const body = document.body;
         const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -388,7 +406,6 @@
             }
         });
         
-        // Выход
         document.getElementById('logoutBtn').onclick = () => {
             localStorage.clear();
             window.location.href = '/login.html';
