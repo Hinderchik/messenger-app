@@ -16,15 +16,8 @@
             width: 100%;
         }
         
-        /* Основной контейнер */
-        .app {
-            display: flex;
-            height: 100%;
-            width: 100%;
-            position: relative;
-        }
+        .app { display: flex; height: 100%; width: 100%; position: relative; }
         
-        /* Сайдбар (всегда виден) */
         .sidebar {
             width: 320px;
             background: #1f2a36;
@@ -64,14 +57,27 @@
         .user-details h3 { font-size: 17px; margin-bottom: 2px; }
         .user-status { font-size: 13px; color: #8e9eae; }
         
-        .icon-btn {
+        .settings-icon {
             background: none;
             border: none;
-            color: #8e9eae;
-            font-size: 22px;
             cursor: pointer;
             padding: 8px;
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .settings-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: #8e9eae;
+            stroke-width: 1.5;
+            fill: none;
+        }
+        
+        .settings-icon:hover svg {
+            stroke: #ffffff;
         }
         
         .search-box { padding: 12px 16px; border-bottom: 1px solid #2c3e50; }
@@ -149,7 +155,6 @@
         .chat-name, .contact-name { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
         .chat-message, .contact-status { font-size: 13px; color: #8e9eae; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* Экран чата (выезжает поверх на мобилках) */
         .chat-screen {
             position: absolute;
             top: 0;
@@ -193,18 +198,29 @@
         .chat-title h3 { font-size: 17px; margin-bottom: 2px; }
         .chat-title span { font-size: 12px; color: #8e9eae; }
         
-        .call-btn, .info-btn {
+        .action-btn {
             background: none;
             border: none;
-            color: #8e9eae;
-            font-size: 22px;
             cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
             width: 44px;
             height: 44px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        
+        .action-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: #8e9eae;
+            stroke-width: 1.5;
+            fill: none;
+        }
+        
+        .action-btn:hover svg {
+            stroke: #ffffff;
         }
         
         .messages {
@@ -258,8 +274,6 @@
         .send-btn {
             background: #3b82f6;
             border: none;
-            color: white;
-            font-size: 22px;
             cursor: pointer;
             width: 44px;
             height: 44px;
@@ -269,18 +283,15 @@
             justify-content: center;
         }
         
-        .empty-chat { text-align: center; color: #8e9eae; margin-top: 100px; }
-        
-        /* Ограничения для неверифицированных */
-        .restricted-badge {
-            display: inline-block;
-            background: #f59e0b;
-            color: #1a1a2e;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-left: 8px;
+        .send-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
         }
+        
+        .empty-chat { text-align: center; color: #8e9eae; margin-top: 100px; }
         
         .restricted-message {
             background: #2d2d2d;
@@ -292,7 +303,6 @@
             color: #f59e0b;
         }
         
-        /* Десктоп */
         @media (min-width: 769px) {
             .chat-screen {
                 position: relative;
@@ -303,7 +313,6 @@
             .back-btn { display: none; }
         }
         
-        /* Мобилки */
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
         }
@@ -320,7 +329,12 @@
                         <span class="user-status" id="userStatusSpan">В сети</span>
                     </div>
                 </div>
-                <button class="icon-btn" id="logoutBtn">🚪</button>
+                <button class="settings-icon" id="settingsBtn">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                </button>
             </div>
             <div class="search-box">
                 <input type="text" id="searchInput" class="search-input" placeholder="Поиск...">
@@ -343,15 +357,30 @@
                     <h3 id="chatName"></h3>
                     <span id="chatStatus"></span>
                 </div>
-                <button class="call-btn" id="callBtn">📞</button>
-                <button class="info-btn" id="infoBtn">ℹ️</button>
+                <button class="action-btn" id="callBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                </button>
+                <button class="action-btn" id="infoBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                </button>
             </div>
             <div class="messages" id="messages">
                 <div class="empty-chat">Выберите чат</div>
             </div>
             <div class="input-area">
                 <input type="text" id="messageInput" class="message-input" placeholder="Сообщение...">
-                <button class="send-btn" id="sendBtn">📤</button>
+                <button class="send-btn" id="sendBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
@@ -366,7 +395,6 @@
         
         if (!currentUserId) window.location.href = '/login.html';
         
-        // Отображение ограничений
         function updateRestrictedUI() {
             const warning = document.getElementById('restrictedWarning');
             const statusSpan = document.getElementById('userStatusSpan');
@@ -380,7 +408,6 @@
             }
         }
         
-        // Проверка прав на создание чата
         function canCreateChat() {
             if (!currentUserVerified) {
                 alert('Для создания чата необходимо подтвердить email. Перейдите в настройки.');
@@ -394,7 +421,7 @@
         updateRestrictedUI();
         
         document.getElementById('openSettings').onclick = () => { window.location.href = '/settings.html'; };
-        document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href = '/login.html'; };
+        document.getElementById('settingsBtn').onclick = () => { window.location.href = '/settings.html'; };
         
         function openChat(chatId, name) {
             currentChatId = chatId;
@@ -426,7 +453,7 @@
                                 const other = chat.members.find(m => m.id !== currentUserId);
                                 name = other ? other.username : 'Чат';
                             }
-                            return `<div class="chat-item" onclick="openChat('${chat.id}', '${name}')">
+                            return `<div class="chat-item" onclick="openChat('${chat.id}', '${escapeHtml(name)}')">
                                 <div class="chat-avatar">${(name || 'C')[0].toUpperCase()}</div>
                                 <div class="chat-info">
                                     <div class="chat-name">${escapeHtml(name)}</div>
