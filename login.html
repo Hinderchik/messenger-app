@@ -45,10 +45,34 @@
             cursor: pointer;
         }
         .error { color: #ef4444; text-align: center; margin-top: 16px; font-size: 14px; }
+        .success { color: #4ade80; text-align: center; margin-top: 16px; font-size: 14px; }
         .link { text-align: center; margin-top: 20px; color: #666; }
         .link a { color: #667eea; text-decoration: none; }
         .forgot-link { text-align: center; margin-top: 12px; }
         .forgot-link a { color: #999; font-size: 14px; text-decoration: none; }
+        .verify-link {
+            text-align: center;
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff5f5;
+            border-radius: 12px;
+            display: none;
+        }
+        .verify-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .resend-link {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+        .resend-link a {
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -61,6 +85,12 @@
             <button type="submit">Войти</button>
         </form>
         <div id="message" class="error"></div>
+        <div class="verify-link" id="verifyLink">
+            🔐 <a href="#" id="verifyNowBtn">Подтвердить email сейчас</a>
+        </div>
+        <div class="resend-link" id="resendLink" style="display: none;">
+            <a id="resendBtn">📧 Отправить письмо повторно</a>
+        </div>
         <div class="forgot-link">
             <a href="#" id="forgotBtn">Забыли пароль?</a>
         </div>
@@ -70,12 +100,21 @@
     </div>
 
     <script>
+        let currentLogin = '';
+        
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const login = document.getElementById('login').value;
             const password = document.getElementById('password').value;
+            currentLogin = login;
+            
             const msgDiv = document.getElementById('message');
+            const verifyLink = document.getElementById('verifyLink');
+            const resendLink = document.getElementById('resendLink');
+            
             msgDiv.innerHTML = '⏳ Проверка...';
+            verifyLink.style.display = 'none';
+            resendLink.style.display = 'none';
             
             try {
                 const res = await fetch('/api/auth?action=login', {
@@ -84,7 +123,17 @@
                     body: JSON.stringify({ login, password })
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error);
+                
+                if (!res.ok) {
+                    if (data.needsVerification) {
+                        msgDiv.innerHTML = '❌ ' + data.error;
+                        verifyLink.style.display = 'block';
+                        resendLink.style.display = 'block';
+                    } else {
+                        throw new Error(data.error);
+                    }
+                    return;
+                }
                 
                 localStorage.setItem('userId', data.id);
                 localStorage.setItem('username', data.username);
@@ -94,6 +143,41 @@
                 msgDiv.innerHTML = '❌ ' + error.message;
             }
         });
+        
+        document.getElementById('verifyNowBtn').onclick = (e) => {
+            e.preventDefault();
+            window.location.href = `/verify-email.html?login=${encodeURIComponent(currentLogin)}`;
+        };
+        
+        document.getElementById('resendBtn').onclick = async () => {
+            const btn = document.getElementById('resendBtn');
+            btn.textContent = 'Отправка...';
+            
+            try {
+                const res = await fetch('/api/resend-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: currentLogin })
+                });
+                const data = await res.json();
+                document.getElementById('message').innerHTML = '✅ ' + (data.message || 'Письмо отправлено');
+                document.getElementById('message').className = 'success';
+            } catch(e) {
+                document.getElementById('message').innerHTML = '❌ Ошибка отправки';
+            } finally {
+                btn.textContent = '📧 Отправить письмо повторно';
+            }
+        };
+        
+        document.getElementById('forgotBtn').onclick = (e) => {
+            e.preventDefault();
+            const login = document.getElementById('login').value;
+            if (login) {
+                window.location.href = `/reset-password.html?login=${encodeURIComponent(login)}`;
+            } else {
+                alert('Введите имя пользователя');
+            }
+        };
     </script>
 </body>
 </html>
