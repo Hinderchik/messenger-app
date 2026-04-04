@@ -1,26 +1,10 @@
 {
   "routes": [
-    {
-      "src": "/app.js",
-      "dest": "/app.js",
-      "headers": {
-        "Content-Type": "application/javascript"
-      }
-    },
-    {
-      "src": "/style.css",
-      "dest": "/style.css",
-      "headers": {
-        "Content-Type": "text/css"
-      }
-    },
-    {
-      "src": "/(.*\\.html)",
-      "dest": "/$1"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    }
+    { "src": "/api/auth", "dest": "/api/auth.js" },
+    { "src": "/api/ping", "dest": "/api/ping.js" },
+    { "src": "/api/core", "dest": "/api/core.js" },
+    { "src": "/(.*\\.html)", "dest": "/$1" },
+    { "src": "/(.*\\.css)", "dest": "/$1" },
+    { "src": "/(.*\\.js)", "dest": "/$1" }
   ]
 }
