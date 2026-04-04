@@ -435,7 +435,7 @@
                 const reader = new FileReader();
                 reader.onloadend = async () => {
                     const avatarData = reader.result;
-                    await fetch(`${API_URL}/api/upload-avatar`, {
+                    await fetch(`${API_URL}/api/core?action=upload-avatar`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId: currentUserId, avatar: avatarData })
@@ -453,7 +453,7 @@
             const name = prompt('Введите название группы');
             if (!name) return;
             
-            const res = await fetch(`${API_URL}/api/groups`, {
+            const res = await fetch(`${API_URL}/api/core?action=groups`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, createdBy: currentUserId, members: [currentUserId] })
@@ -469,7 +469,7 @@
             const name = prompt('Введите название канала');
             if (!name) return;
             
-            const res = await fetch(`${API_URL}/api/channels`, {
+            const res = await fetch(`${API_URL}/api/core?action=channels`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, description: '', createdBy: currentUserId })
@@ -492,7 +492,7 @@
             const text = input.value.trim();
             if (!text || !currentChatId) return;
             
-            const url = replyToMessage ? `${API_URL}/api/comments` : `${API_URL}/api/messages`;
+            const url = replyToMessage ? `${API_URL}/api/core?action=reply-message` : `${API_URL}/api/messages`;
             const body = replyToMessage ? 
                 { messageId: replyToMessage, userId: currentUserId, text } :
                 { chatId: currentChatId, fromId: currentUserId, text };
@@ -558,7 +558,7 @@
         
         async function loadChats() {
             try {
-                const res = await fetch(`${API_URL}/api/chats?userId=${currentUserId}`);
+                const res = await fetch(`${API_URL}/api/core?action=chats&userId=${currentUserId}`);
                 const chats = await res.json();
                 const container = document.getElementById('chatsList');
                 if (container) {
@@ -582,7 +582,7 @@
         
         async function loadContacts() {
             try {
-                const res = await fetch(`${API_URL}/api/users?userId=${currentUserId}`);
+                const res = await fetch(`${API_URL}/api/core?action=users&userId=${currentUserId}`);
                 const users = await res.json();
                 const container = document.getElementById('contactsList');
                 if (container) {
@@ -602,7 +602,7 @@
         
         async function loadGroups() {
             try {
-                const res = await fetch(`${API_URL}/api/chats?userId=${currentUserId}&type=group`);
+                const res = await fetch(`${API_URL}/api/core?action=chats&userId=${currentUserId}&type=group`);
                 const groups = await res.json();
                 const container = document.getElementById('groupsList');
                 if (container) {
@@ -619,7 +619,7 @@
         
         async function loadChannels() {
             try {
-                const res = await fetch(`${API_URL}/api/chats?userId=${currentUserId}&type=channel`);
+                const res = await fetch(`${API_URL}/api/core?action=chats&userId=${currentUserId}&type=channel`);
                 const channels = await res.json();
                 const container = document.getElementById('channelsList');
                 if (container) {
@@ -640,7 +640,7 @@
                 return;
             }
             try {
-                const res = await fetch(`${API_URL}/api/create-chat`, {
+                const res = await fetch(`${API_URL}/api/core?action=create-chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user1Id: currentUserId, user2Id: userId })
@@ -654,7 +654,7 @@
         async function loadMessages() {
             if (!currentChatId) return;
             try {
-                const res = await fetch(`${API_URL}/api/messages?chatId=${currentChatId}&limit=50`);
+                const res = await fetch(`${API_URL}/api/core?action=messages&chatId=${currentChatId}&limit=50`);
                 const messages = await res.json();
                 const container = document.getElementById('messages');
                 if (container) {
