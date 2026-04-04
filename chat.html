@@ -15,7 +15,6 @@
             position: fixed;
             width: 100%;
         }
-        
         .app { display: flex; height: 100%; width: 100%; position: relative; }
         
         .sidebar {
@@ -35,122 +34,61 @@
             justify-content: space-between;
         }
         
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-        }
-        
+        .user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 600;
         }
-        
         .user-details h3 { font-size: 17px; margin-bottom: 2px; }
         .user-status { font-size: 13px; color: #8e9eae; }
         
         .settings-icon {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: none; border: none; cursor: pointer; padding: 8px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
-        
-        .settings-icon svg {
-            width: 24px;
-            height: 24px;
-            stroke: #8e9eae;
-            stroke-width: 1.5;
-            fill: none;
-        }
-        
-        .settings-icon:hover svg {
-            stroke: #ffffff;
-        }
+        .settings-icon svg { width: 24px; height: 24px; stroke: #8e9eae; stroke-width: 1.5; fill: none; }
         
         .search-box { padding: 12px 16px; border-bottom: 1px solid #2c3e50; }
         .search-input {
-            width: 100%;
-            padding: 10px 16px;
-            background: #17212b;
-            border: none;
-            border-radius: 20px;
-            color: white;
-            font-size: 16px;
+            width: 100%; padding: 10px 16px;
+            background: #17212b; border: none; border-radius: 20px;
+            color: white; font-size: 16px;
         }
         
         .tabs {
-            display: flex;
-            padding: 8px 16px;
-            gap: 8px;
+            display: flex; padding: 8px 16px; gap: 8px;
             border-bottom: 1px solid #2c3e50;
         }
-        
         .tab {
-            flex: 1;
-            padding: 8px;
-            text-align: center;
-            background: none;
-            border: none;
-            color: #8e9eae;
-            font-size: 14px;
-            border-radius: 10px;
-            cursor: pointer;
+            flex: 1; padding: 8px; text-align: center;
+            background: none; border: none; color: #8e9eae;
+            font-size: 14px; border-radius: 10px; cursor: pointer;
         }
-        
         .tab.active { color: #3b82f6; background: rgba(59,130,246,0.1); }
         
         .chats-list, .contacts-list { flex: 1; overflow-y: auto; }
         
         .chat-item, .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-bottom: 1px solid #2c3e50;
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-bottom: 1px solid #2c3e50;
             cursor: pointer;
-            transition: background 0.2s;
         }
-        
         .chat-item:active, .contact-item:active { background: rgba(59,130,246,0.1); }
         
         .chat-avatar, .contact-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
+            width: 52px; height: 52px; border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 600;
-            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 600; position: relative;
             flex-shrink: 0;
         }
-        
         .online-dot {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
-            background: #4ade80;
-            border-radius: 50%;
-            border: 2px solid #1f2a36;
+            position: absolute; bottom: 2px; right: 2px;
+            width: 12px; height: 12px; background: #4ade80;
+            border-radius: 50%; border: 2px solid #1f2a36;
         }
-        
         .chat-info, .contact-info { flex: 1; min-width: 0; }
         .chat-name, .contact-name { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
         .chat-message, .contact-status { font-size: 13px; color: #8e9eae; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -168,7 +106,6 @@
             transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             z-index: 200;
         }
-        
         .chat-screen.open { transform: translateX(0); }
         
         .chat-header {
@@ -179,49 +116,15 @@
             gap: 12px;
             border-bottom: 1px solid #2c3e50;
         }
-        
         .back-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            padding: 8px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: none; border: none; color: white;
+            font-size: 28px; cursor: pointer; padding: 8px;
+            width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
         }
-        
         .chat-title { flex: 1; }
         .chat-title h3 { font-size: 17px; margin-bottom: 2px; }
         .chat-title span { font-size: 12px; color: #8e9eae; }
-        
-        .action-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .action-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke: #8e9eae;
-            stroke-width: 1.5;
-            fill: none;
-        }
-        
-        .action-btn:hover svg {
-            stroke: #ffffff;
-        }
         
         .messages {
             flex: 1;
@@ -231,23 +134,19 @@
             flex-direction: column;
             gap: 8px;
         }
-        
         .message {
             max-width: 80%;
             display: flex;
             flex-direction: column;
         }
-        
         .message.sent { align-self: flex-end; }
         .message.received { align-self: flex-start; }
-        
         .bubble {
             padding: 10px 14px;
             border-radius: 18px;
             font-size: 15px;
             line-height: 1.4;
         }
-        
         .sent .bubble { background: #3b82f6; border-bottom-right-radius: 4px; }
         .received .bubble { background: #1f2a36; border-bottom-left-radius: 4px; }
         .time { font-size: 10px; color: #8e9eae; margin-top: 4px; margin-left: 8px; }
@@ -259,7 +158,6 @@
             gap: 12px;
             align-items: center;
         }
-        
         .message-input {
             flex: 1;
             padding: 12px 16px;
@@ -270,7 +168,6 @@
             font-size: 16px;
             outline: none;
         }
-        
         .send-btn {
             background: #3b82f6;
             border: none;
@@ -282,7 +179,6 @@
             align-items: center;
             justify-content: center;
         }
-        
         .send-btn svg {
             width: 22px;
             height: 22px;
@@ -290,7 +186,6 @@
             stroke-width: 2;
             fill: none;
         }
-        
         .empty-chat { text-align: center; color: #8e9eae; margin-top: 100px; }
         
         .restricted-message {
@@ -344,7 +239,7 @@
                 <button class="tab" data-tab="contacts">Контакты</button>
             </div>
             <div id="restrictedWarning" class="restricted-message" style="display: none;">
-                ⚠️ Подтвердите email для создания чатов и каналов
+                ⚠️ Подтвердите email для создания чатов
             </div>
             <div class="chats-list" id="chatsList"></div>
             <div class="contacts-list" id="contactsList" style="display: none;"></div>
@@ -357,18 +252,6 @@
                     <h3 id="chatName"></h3>
                     <span id="chatStatus"></span>
                 </div>
-                <button class="action-btn" id="callBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                </button>
-                <button class="action-btn" id="infoBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                </button>
             </div>
             <div class="messages" id="messages">
                 <div class="empty-chat">Выберите чат</div>
@@ -389,31 +272,20 @@
         const API_URL = '';
         let currentUserId = localStorage.getItem('userId');
         let currentUsername = localStorage.getItem('username');
-        let currentUserEmail = localStorage.getItem('email');
         let currentUserVerified = localStorage.getItem('emailVerified') === 'true';
         let currentChatId = null;
         
-        if (!currentUserId) window.location.href = '/login.html';
+        if (!currentUserId) window.location.href = '/login2.html';
         
         function updateRestrictedUI() {
             const warning = document.getElementById('restrictedWarning');
             const statusSpan = document.getElementById('userStatusSpan');
-            
-            if (!currentUserVerified) {
-                if (warning) warning.style.display = 'block';
-                if (statusSpan) statusSpan.innerHTML = '⚠️ Требуется верификация';
-            } else {
-                if (warning) warning.style.display = 'none';
-                if (statusSpan) statusSpan.innerHTML = 'В сети ✓';
+            if (warning) {
+                warning.style.display = currentUserVerified ? 'none' : 'block';
             }
-        }
-        
-        function canCreateChat() {
-            if (!currentUserVerified) {
-                alert('Для создания чата необходимо подтвердить email. Перейдите в настройки.');
-                return false;
+            if (statusSpan) {
+                statusSpan.innerHTML = currentUserVerified ? 'В сети ✓' : '⚠️ Требуется верификация';
             }
-            return true;
         }
         
         document.getElementById('username').innerText = currentUsername || 'User';
@@ -434,9 +306,6 @@
             document.getElementById('chatScreen').classList.remove('open');
             currentChatId = null;
         };
-        
-        document.getElementById('callBtn').onclick = () => { alert('Звонок в разработке'); };
-        document.getElementById('infoBtn').onclick = () => { alert('Информация о чате'); };
         
         async function loadChats() {
             try {
@@ -491,7 +360,10 @@
         }
         
         async function startChat(userId, userName) {
-            if (!canCreateChat()) return;
+            if (!currentUserVerified) {
+                alert('Для создания чата необходимо подтвердить email. Перейдите в настройки.');
+                return;
+            }
             
             try {
                 const res = await fetch(`${API_URL}/api/create-chat`, {
