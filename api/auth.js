@@ -9,8 +9,25 @@ const pool = new Pool({
 });
 
 export default async function handler(req, res) {
-  // REGISTER - POST /api/auth?action=register
-  if (req.method === 'POST' && req.query.action === 'register') {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const action = url.searchParams.get('action');
+  
+  console.log('Auth action:', action, req.method);
+  
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
+  // REGISTER
+  if (action === 'register') {
     const { username, email, password } = req.body;
     
     if (!username || !password) {
@@ -38,14 +55,14 @@ export default async function handler(req, res) {
       
       res.status(200).json({ id: result.rows[0].id, username: result.rows[0].username });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal error' });
+      console.error('Register error:', error);
+      res.status(500).json({ error: error.message || 'Internal error' });
     }
     return;
   }
   
-  // LOGIN - POST /api/auth?action=login
-  if (req.method === 'POST' && req.query.action === 'login') {
+  // LOGIN
+  if (action === 'login') {
     const { login, password } = req.body;
     
     if (!login || !password) {
@@ -82,11 +99,11 @@ export default async function handler(req, res) {
       
       res.status(200).json({ id: user.id, username: user.username, email: user.email, emailVerified: user.email_verified });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal error' });
+      console.error('Login error:', error);
+      res.status(500).json({ error: error.message || 'Internal error' });
     }
     return;
   }
   
-  res.status(404).json({ error: 'Not found' });
+  res.status(400).json({ error: 'Invalid action. Use ?action=register or ?action=login' });
 }
