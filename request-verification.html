@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запросить ссылку подтверждения</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .logo { font-size: 48px; margin-bottom: 20px; }
+        h2 { margin-bottom: 10px; color: #333; }
+        p { margin-bottom: 20px; color: #666; }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .message { margin-top: 16px; font-size: 14px; }
+        .error { color: #ef4444; }
+        .success { color: #4ade80; }
+        .link { margin-top: 20px; }
+        .link a { color: #667eea; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">📧</div>
+        <h2>Подтверждение email</h2>
+        <p>Введите ваш email, чтобы получить ссылку для подтверждения аккаунта</p>
+        <input type="email" id="email" placeholder="example@mail.com">
+        <button id="sendBtn">Отправить ссылку</button>
+        <div id="message" class="message"></div>
+        <div class="link">
+            <a href="/login.html">← Вернуться ко входу</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('sendBtn').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const msgDiv = document.getElementById('message');
+            
+            if (!email || !email.includes('@')) {
+                msgDiv.innerHTML = '❌ Введите корректный email';
+                msgDiv.className = 'message error';
+                return;
+            }
+            
+            msgDiv.innerHTML = '⏳ Отправка...';
+            msgDiv.className = 'message';
+            
+            try {
+                const res = await fetch('/api/send-verification-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    msgDiv.innerHTML = '✅ ' + data.message;
+                    msgDiv.className = 'message success';
+                } else {
+                    msgDiv.innerHTML = '❌ ' + data.error;
+                    msgDiv.className = 'message error';
+                }
+            } catch (e) {
+                msgDiv.innerHTML = '❌ Ошибка соединения';
+                msgDiv.className = 'message error';
+            }
+        };
+    </script>
+</body>
+</html>
