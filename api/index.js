@@ -10,10 +10,13 @@ const pool = new Pool({
 });
 
 export default async function handler(req, res) {
-  const { pathname } = new URL(req.url, `http://${req.headers.host}`);
-  const path = pathname.replace('/api/', '');
+  // Получаем путь из URL
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const path = url.pathname.replace('/api/', '');
   
-  // CORS headers
+  console.log('API called:', path, req.method);
+  
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -25,31 +28,36 @@ export default async function handler(req, res) {
   // REGISTER
   if (path === 'register' && req.method === 'POST') {
     const { username, email, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password required' });
+    }
     
     try {
       const client = await pool.connect();
       const existing = await client.query('SELECT id FROM users WHERE username = $1', [username]);
       if (existing.rows.length > 0) {
         client.release();
-        return res.status(400).json({ error: 'User exists' });
+        return res.status(400).json({ error: 'User already exists' });
       }
       
       const { hash, chainId, salt } = await hashPassword(password);
-      const verifyToken = email ? crypto.randomBytes(32).toString('hex') : null;
+      const verifyToken = (email && email.trim()) ? crypto.randomBytes(32).toString('hex') : null;
       
       const result = await client.query(
         `INSERT INTO users (username, email, password_hash, password_chain, password_salt, email_verify_token, email_verified, online, last_seen)
          VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW())
          RETURNING id, username`,
-        [username, email || null, hash, chainId, salt, verifyToken, !email]
+        [username, email || null, hash, chainId, salt, verifyToken, !verifyToken]
       );
       client.release();
       
-      if (email && verifyToken) await sendVerificationEmail(email, username, verifyToken);
+      if (verifyToken && email) {
+        await sendVerificationEmail(email, username, verifyToken);
+      }
       
       res.status(200).json({ id: result.rows[0].id, username: result.rows[0].username });
     } catch (error) {
+      console.error('Register error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
@@ -58,7 +66,9 @@ export default async function handler(req, res) {
   // LOGIN
   if (path === 'login' && req.method === 'POST') {
     const { login, password } = req.body;
-    if (!login || !password) return res.status(400).json({ error: 'Login and password required' });
+    if (!login || !password) {
+      return res.status(400).json({ error: 'Login and password required' });
+    }
     
     try {
       const client = await pool.connect();
@@ -90,6 +100,7 @@ export default async function handler(req, res) {
       
       res.status(200).json({ id: user.id, username: user.username, email: user.email, emailVerified: user.email_verified });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
@@ -97,8 +108,10 @@ export default async function handler(req, res) {
   
   // USERS LIST
   if (path === 'users' && req.method === 'GET') {
-    const { userId } = req.query;
-    if (!userId) return res.status(400).json({ error: 'User ID required' });
+    const userId = url.searchParams.get('userId');
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID required' });
+    }
     
     try {
       const client = await pool.connect();
@@ -109,6 +122,7 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json(result.rows);
     } catch (error) {
+      console.error('Users error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
@@ -117,7 +131,9 @@ export default async function handler(req, res) {
   // CREATE CHAT
   if (path === 'create-chat' && req.method === 'POST') {
     const { user1Id, user2Id } = req.body;
-    if (!user1Id || !user2Id) return res.status(400).json({ error: 'User IDs required' });
+    if (!user1Id || !user2Id) {
+      return res.status(400).json({ error: 'User IDs required' });
+    }
     
     try {
       const client = await pool.connect();
@@ -125,15 +141,18 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json({ chatId: result.rows[0].chat_id });
     } catch (error) {
+      console.error('Create chat error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
   }
   
-  // MESSAGES
+  // MESSAGES GET
   if (path === 'messages' && req.method === 'GET') {
-    const { chatId } = req.query;
-    if (!chatId) return res.status(400).json({ error: 'Chat ID required' });
+    const chatId = url.searchParams.get('chatId');
+    if (!chatId) {
+      return res.status(400).json({ error: 'Chat ID required' });
+    }
     
     try {
       const client = await pool.connect();
@@ -144,14 +163,18 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json(result.rows);
     } catch (error) {
+      console.error('Messages error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
   }
   
+  // MESSAGES POST
   if (path === 'messages' && req.method === 'POST') {
     const { chatId, fromId, text } = req.body;
-    if (!chatId || !fromId || !text) return res.status(400).json({ error: 'Missing fields' });
+    if (!chatId || !fromId || !text) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
     
     try {
       const client = await pool.connect();
@@ -162,66 +185,7 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json(result.rows[0]);
     } catch (error) {
-      res.status(500).json({ error: 'Internal error' });
-    }
-    return;
-  }
-  
-  // USER STATUS
-  if (path === 'user-status' && req.method === 'GET') {
-    const { userId } = req.query;
-    if (!userId) return res.status(400).json({ error: 'User ID required' });
-    
-    try {
-      const client = await pool.connect();
-      const result = await client.query('SELECT email, email_verified FROM users WHERE id = $1', [userId]);
-      client.release();
-      res.status(200).json(result.rows[0] || {});
-    } catch (error) {
-      res.status(500).json({ error: 'Internal error' });
-    }
-    return;
-  }
-  
-  // ADD EMAIL
-  if (path === 'add-email' && req.method === 'POST') {
-    const { userId, email } = req.body;
-    if (!userId || !email) return res.status(400).json({ error: 'User ID and email required' });
-    
-    try {
-      const client = await pool.connect();
-      const verifyToken = crypto.randomBytes(32).toString('hex');
-      await client.query(
-        'UPDATE users SET email = $1, email_verify_token = $2, email_verified = false WHERE id = $3',
-        [email, verifyToken, userId]
-      );
-      const user = await client.query('SELECT username FROM users WHERE id = $1', [userId]);
-      client.release();
-      
-      await sendVerificationEmail(email, user.rows[0]?.username || 'User', verifyToken);
-      res.status(200).json({ message: 'Verification email sent' });
-    } catch (error) {
-      res.status(500).json({ error: 'Internal error' });
-    }
-    return;
-  }
-  
-  // RESEND VERIFICATION
-  if (path === 'resend-verification' && req.method === 'POST') {
-    const { login } = req.body;
-    if (!login) return res.status(400).json({ error: 'Login required' });
-    
-    try {
-      const client = await pool.connect();
-      const user = await client.query('SELECT id, username, email FROM users WHERE username = $1 OR email = $1', [login]);
-      if (user.rows.length && user.rows[0].email) {
-        const verifyToken = crypto.randomBytes(32).toString('hex');
-        await client.query('UPDATE users SET email_verify_token = $1 WHERE id = $2', [verifyToken, user.rows[0].id]);
-        await sendVerificationEmail(user.rows[0].email, user.rows[0].username, verifyToken);
-      }
-      client.release();
-      res.status(200).json({ message: 'If email exists, verification sent' });
-    } catch (error) {
+      console.error('Send message error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
@@ -229,8 +193,10 @@ export default async function handler(req, res) {
   
   // VERIFY EMAIL
   if (path === 'verify-email' && req.method === 'GET') {
-    const { token } = req.query;
-    if (!token) return res.status(400).json({ error: 'Token required' });
+    const token = url.searchParams.get('token');
+    if (!token) {
+      return res.status(400).json({ error: 'Token required' });
+    }
     
     try {
       const client = await pool.connect();
@@ -243,6 +209,31 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json({ message: 'Email verified successfully' });
     } catch (error) {
+      console.error('Verify error:', error);
+      res.status(500).json({ error: 'Internal error' });
+    }
+    return;
+  }
+  
+  // RESEND VERIFICATION
+  if (path === 'resend-verification' && req.method === 'POST') {
+    const { login } = req.body;
+    if (!login) {
+      return res.status(400).json({ error: 'Login required' });
+    }
+    
+    try {
+      const client = await pool.connect();
+      const user = await client.query('SELECT id, username, email FROM users WHERE username = $1 OR email = $1', [login]);
+      if (user.rows.length && user.rows[0].email) {
+        const verifyToken = crypto.randomBytes(32).toString('hex');
+        await client.query('UPDATE users SET email_verify_token = $1 WHERE id = $2', [verifyToken, user.rows[0].id]);
+        await sendVerificationEmail(user.rows[0].email, user.rows[0].username, verifyToken);
+      }
+      client.release();
+      res.status(200).json({ message: 'If email exists, verification sent' });
+    } catch (error) {
+      console.error('Resend error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
@@ -251,7 +242,9 @@ export default async function handler(req, res) {
   // RESET PASSWORD
   if (path === 'reset-password' && req.method === 'POST') {
     const { login } = req.body;
-    if (!login) return res.status(400).json({ error: 'Login required' });
+    if (!login) {
+      return res.status(400).json({ error: 'Login required' });
+    }
     
     try {
       const client = await pool.connect();
@@ -264,6 +257,7 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json({ message: 'If email exists, reset link sent' });
     } catch (error) {
+      console.error('Reset error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
@@ -272,7 +266,9 @@ export default async function handler(req, res) {
   // RESET PASSWORD CONFIRM
   if (path === 'reset-password-confirm' && req.method === 'POST') {
     const { token, password } = req.body;
-    if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and password required' });
+    }
     
     try {
       const client = await pool.connect();
@@ -289,11 +285,92 @@ export default async function handler(req, res) {
       client.release();
       res.status(200).json({ message: 'Password reset successfully' });
     } catch (error) {
+      console.error('Reset confirm error:', error);
       res.status(500).json({ error: 'Internal error' });
     }
     return;
   }
   
+  // ADD EMAIL
+  if (path === 'add-email' && req.method === 'POST') {
+    const { userId, email } = req.body;
+    if (!userId || !email) {
+      return res.status(400).json({ error: 'User ID and email required' });
+    }
+    
+    try {
+      const client = await pool.connect();
+      const verifyToken = crypto.randomBytes(32).toString('hex');
+      await client.query(
+        'UPDATE users SET email = $1, email_verify_token = $2, email_verified = false WHERE id = $3',
+        [email, verifyToken, userId]
+      );
+      const user = await client.query('SELECT username FROM users WHERE id = $1', [userId]);
+      client.release();
+      
+      await sendVerificationEmail(email, user.rows[0]?.username || 'User', verifyToken);
+      res.status(200).json({ message: 'Verification email sent' });
+    } catch (error) {
+      console.error('Add email error:', error);
+      res.status(500).json({ error: 'Internal error' });
+    }
+    return;
+  }
+  
+  // USER STATUS
+  if (path === 'user-status' && req.method === 'GET') {
+    const userId = url.searchParams.get('userId');
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID required' });
+    }
+    
+    try {
+      const client = await pool.connect();
+      const result = await client.query('SELECT email, email_verified FROM users WHERE id = $1', [userId]);
+      client.release();
+      res.status(200).json(result.rows[0] || {});
+    } catch (error) {
+      console.error('User status error:', error);
+      res.status(500).json({ error: 'Internal error' });
+    }
+    return;
+  }
+  
+  // CHATS LIST
+  if (path === 'chats' && req.method === 'GET') {
+    const userId = url.searchParams.get('userId');
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID required' });
+    }
+    
+    try {
+      const client = await pool.connect();
+      const result = await client.query(
+        `SELECT c.id, c.type, c.name, 
+          (SELECT json_agg(json_build_object('id', u.id, 'username', u.username))
+           FROM chat_members cm2
+           JOIN users u ON u.id = cm2.user_id
+           WHERE cm2.chat_id = c.id) as members,
+          (SELECT text FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message
+        FROM chats c
+        JOIN chat_members cm ON cm.chat_id = c.id
+        WHERE cm.user_id = $1`,
+        [userId]
+      );
+      client.release();
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error('Chats error:', error);
+      res.status(500).json({ error: 'Internal error' });
+    }
+    return;
+  }
+  
+  // Ping (для проверки)
+  if (path === 'ping') {
+    return res.status(200).json({ status: 'ok', time: Date.now() });
+  }
+  
   // Not found
-  res.status(404).json({ error: 'Not found' });
+  res.status(404).json({ error: 'Not found', path });
 }
