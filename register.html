@@ -1,20 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="googlebot" content="noindex, nofollow">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Регистрация - c.c Messenger</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -22,7 +15,6 @@
             justify-content: center;
             padding: 20px;
         }
-        
         .form-card {
             background: white;
             padding: 40px;
@@ -31,19 +23,9 @@
             max-width: 400px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        
-        .logo {
-            font-size: 48px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        
+        .logo { font-size: 48px; text-align: center; margin-bottom: 20px; }
+        h2 { text-align: center; margin-bottom: 10px; color: #333; }
+        .info-text { text-align: center; margin-bottom: 25px; font-size: 13px; color: #666; }
         input {
             width: 100%;
             padding: 14px;
@@ -51,14 +33,8 @@
             border: 1px solid #ddd;
             border-radius: 12px;
             font-size: 16px;
-            transition: border-color 0.2s;
         }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
+        input:focus { outline: none; border-color: #667eea; }
         button {
             width: 100%;
             padding: 14px;
@@ -69,58 +45,41 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        .error { color: #ef4444; text-align: center; margin-top: 16px; font-size: 14px; }
+        .success { color: #4ade80; text-align: center; margin-top: 16px; font-size: 14px; }
+        .link { text-align: center; margin-top: 20px; color: #666; }
+        .link a { color: #667eea; text-decoration: none; }
+        .optional-badge {
+            font-size: 11px;
+            color: #888;
+            margin-top: -12px;
+            margin-bottom: 16px;
+            text-align: right;
         }
-        
-        .error {
-            color: #ef4444;
+        .restricted-note {
+            background: #fff5f5;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #c53030;
             text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-        
-        .success {
-            color: #4ade80;
-            text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-        
-        .link {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-        }
-        
-        .link a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        @media (max-width: 480px) {
-            .form-card {
-                padding: 30px 20px;
-            }
-            
-            input {
-                padding: 12px;
-                font-size: 14px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="form-card">
         <div class="logo">💬</div>
-        <h2>Регистрация в c.c Messenger</h2>
+        <h2>Регистрация</h2>
+        <div class="restricted-note">
+            ⚠️ Без подтверждения email будут доступны только чаты<br>
+            Для создания чатов и каналов потребуется верификация
+        </div>
         <form id="registerForm">
             <input type="text" id="username" placeholder="Имя пользователя" required>
-            <input type="email" id="email" placeholder="Email" required>
+            <input type="email" id="email" placeholder="Email (необязательно)">
+            <div class="optional-badge">можно пропустить</div>
             <input type="password" id="password" placeholder="Пароль (8-16 символов)" required>
             <button type="submit">Зарегистрироваться</button>
         </form>
@@ -134,8 +93,10 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value || null;
             const password = document.getElementById('password').value;
+            
+            const msgDiv = document.getElementById('errorMsg');
             
             try {
                 const res = await fetch('/api/register', {
@@ -147,10 +108,17 @@
                 
                 if (!res.ok) throw new Error(data.error);
                 
-                document.getElementById('errorMsg').innerHTML = '✅ ' + (data.message || 'Регистрация успешна! Проверьте почту.');
+                if (email) {
+                    msgDiv.innerHTML = '✅ Регистрация успешна! Письмо отправлено на почту. Подтвердите email для полного доступа.';
+                    msgDiv.className = 'success';
+                } else {
+                    msgDiv.innerHTML = '✅ Регистрация успешна! Вы можете войти. Для создания чатов подтвердите email в настройках.';
+                    msgDiv.className = 'success';
+                }
                 setTimeout(() => window.location.href = '/login.html', 2000);
             } catch (error) {
-                document.getElementById('errorMsg').innerHTML = '❌ ' + error.message;
+                msgDiv.innerHTML = '❌ ' + error.message;
+                msgDiv.className = 'error';
             }
         });
     </script>
