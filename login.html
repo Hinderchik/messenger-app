@@ -1,20 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="googlebot" content="noindex, nofollow">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Вход - c.c Messenger</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -22,7 +15,6 @@
             justify-content: center;
             padding: 20px;
         }
-        
         .form-card {
             background: white;
             padding: 40px;
@@ -31,19 +23,8 @@
             max-width: 400px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        
-        .logo {
-            font-size: 48px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        
+        .logo { font-size: 48px; text-align: center; margin-bottom: 20px; }
+        h2 { text-align: center; margin-bottom: 30px; color: #333; }
         input {
             width: 100%;
             padding: 14px;
@@ -51,14 +32,8 @@
             border: 1px solid #ddd;
             border-radius: 12px;
             font-size: 16px;
-            transition: border-color 0.2s;
         }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
+        input:focus { outline: none; border-color: #667eea; }
         button {
             width: 100%;
             padding: 14px;
@@ -69,48 +44,27 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        
-        .error {
-            color: #ef4444;
-            text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-        
-        .success {
-            color: #4ade80;
-            text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-        
-        .link {
+        .error { color: #ef4444; text-align: center; margin-top: 16px; font-size: 14px; }
+        .success { color: #4ade80; text-align: center; margin-top: 16px; font-size: 14px; }
+        .link { text-align: center; margin-top: 20px; color: #666; }
+        .link a { color: #667eea; text-decoration: none; }
+        .forgot-link { text-align: center; margin-top: 12px; }
+        .forgot-link a { color: #999; font-size: 14px; text-decoration: none; }
+        .forgot-link a:hover { color: #667eea; }
+        .resend {
             text-align: center;
             margin-top: 20px;
-            color: #666;
+            font-size: 14px;
         }
-        
-        .link a {
+        .resend a {
             color: #667eea;
             text-decoration: none;
+            cursor: pointer;
         }
-        
         @media (max-width: 480px) {
-            .form-card {
-                padding: 30px 20px;
-            }
-            
-            input {
-                padding: 12px;
-                font-size: 14px;
-            }
+            .form-card { padding: 30px 20px; }
+            input { padding: 12px; font-size: 14px; }
         }
     </style>
 </head>
@@ -123,20 +77,45 @@
             <input type="password" id="password" placeholder="Пароль" required>
             <button type="submit">Войти</button>
         </form>
-        <div id="errorMsg" class="error"></div>
+        <div class="forgot-link">
+            <a href="#" id="forgotBtn">Забыли пароль?</a>
+        </div>
+        <div id="message" class="error"></div>
         <div class="link">
             Нет аккаунта? <a href="/register.html">Зарегистрироваться</a>
         </div>
+        <div class="resend">
+            <a id="resendLink" style="display: none;">Отправить письмо повторно</a>
+        </div>
     </div>
     
+    <div class="modal" id="resetModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 20px; padding: 30px; width: 90%; max-width: 350px; text-align: center;">
+            <h3 style="margin-bottom: 16px;">Сброс пароля</h3>
+            <p style="margin-bottom: 16px; color: #666;">Введите email или имя пользователя</p>
+            <input type="text" id="resetLogin" placeholder="Email или имя пользователя" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="cancelReset" style="background: #ccc; color: #333;">Отмена</button>
+                <button id="confirmReset" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">Отправить</button>
+            </div>
+            <div id="resetMessage" style="margin-top: 16px; font-size: 14px;"></div>
+        </div>
+    </div>
+
     <script>
+        const API_URL = '';
+        
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const login = document.getElementById('login').value;
             const password = document.getElementById('password').value;
             
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = '⏳ Проверка...';
+            msgDiv.className = 'error';
+            
             try {
-                const res = await fetch('/api/login', {
+                const res = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login, password })
@@ -147,12 +126,83 @@
                 
                 localStorage.setItem('userId', data.id);
                 localStorage.setItem('username', data.username);
-                localStorage.setItem('email', data.email);
+                localStorage.setItem('email', data.email || '');
+                localStorage.setItem('emailVerified', data.emailVerified || false);
                 window.location.href = '/chat.html';
             } catch (error) {
-                document.getElementById('errorMsg').innerHTML = '❌ ' + error.message;
+                msgDiv.innerHTML = '❌ ' + error.message;
+                if (error.message.includes('подтвердите email')) {
+                    document.getElementById('resendLink').style.display = 'block';
+                    document.getElementById('resendLink').onclick = async () => {
+                        const login = document.getElementById('login').value;
+                        const res = await fetch(`${API_URL}/api/resend-verification`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ login })
+                        });
+                        const data = await res.json();
+                        msgDiv.innerHTML = data.message || 'Письмо отправлено';
+                    };
+                }
             }
         });
+        
+        // Модальное окно сброса пароля
+        const modal = document.getElementById('resetModal');
+        const forgotBtn = document.getElementById('forgotBtn');
+        const cancelReset = document.getElementById('cancelReset');
+        const confirmReset = document.getElementById('confirmReset');
+        const resetLogin = document.getElementById('resetLogin');
+        const resetMessage = document.getElementById('resetMessage');
+        
+        forgotBtn.onclick = (e) => {
+            e.preventDefault();
+            modal.style.display = 'flex';
+            resetLogin.value = '';
+            resetMessage.innerHTML = '';
+        };
+        
+        cancelReset.onclick = () => {
+            modal.style.display = 'none';
+        };
+        
+        confirmReset.onclick = async () => {
+            const login = resetLogin.value.trim();
+            if (!login) {
+                resetMessage.innerHTML = '❌ Введите email или имя пользователя';
+                resetMessage.style.color = '#ef4444';
+                return;
+            }
+            
+            resetMessage.innerHTML = '⏳ Отправка...';
+            resetMessage.style.color = '#666';
+            
+            try {
+                const res = await fetch(`${API_URL}/api/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    resetMessage.innerHTML = '✅ ' + data.message;
+                    resetMessage.style.color = '#4ade80';
+                    setTimeout(() => modal.style.display = 'none', 2000);
+                } else {
+                    resetMessage.innerHTML = '❌ ' + data.error;
+                    resetMessage.style.color = '#ef4444';
+                }
+            } catch (error) {
+                resetMessage.innerHTML = '❌ Ошибка соединения';
+                resetMessage.style.color = '#ef4444';
+            }
+        };
+        
+        // Закрытие по клику вне модалки
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        };
     </script>
 </body>
 </html>
