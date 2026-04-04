@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Подтверждение email - c.c Messenger</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,103 +15,92 @@
             justify-content: center;
             padding: 20px;
         }
-        .form-card {
+        .card {
             background: white;
             padding: 40px;
             border-radius: 20px;
-            width: 100%;
+            text-align: center;
             max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .logo { font-size: 48px; text-align: center; margin-bottom: 20px; }
-        h2 { text-align: center; margin-bottom: 10px; color: #333; }
-        .subtitle { text-align: center; margin-bottom: 30px; color: #666; font-size: 14px; }
-        input {
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 16px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            font-size: 16px;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
+        .icon { font-size: 64px; margin-bottom: 20px; }
+        h2 { margin-bottom: 16px; color: #333; }
+        p { color: #666; margin-bottom: 24px; line-height: 1.5; }
+        .btn {
+            display: inline-block;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 25px;
         }
-        .error { color: #ef4444; text-align: center; margin-top: 16px; font-size: 14px; }
-        .success { color: #4ade80; text-align: center; margin-top: 16px; font-size: 14px; }
-        .link { text-align: center; margin-top: 20px; color: #666; }
-        .link a { color: #667eea; text-decoration: none; }
-        .info { background: #f0f0f0; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; color: #555; text-align: center; }
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div class="form-card">
-        <div class="logo">✉️</div>
+    <div class="card" id="content">
+        <div class="icon">✉️</div>
         <h2>Подтверждение email</h2>
-        <div class="subtitle">Войдите, чтобы подтвердить email</div>
-        
-        <form id="verifyForm">
-            <input type="text" id="username" placeholder="Имя пользователя" required>
-            <input type="password" id="password" placeholder="Пароль" required>
-            <button type="submit">Войти и подтвердить</button>
-        </form>
-        
-        <div id="message" class="error"></div>
-        <div class="info">
-            💡 После входа ваш email будет автоматически подтверждён<br>
-            Если email не указан, вы сможете добавить его в настройках
-        </div>
-        <div class="link">
-            <a href="/login.html">← Вернуться ко входу</a>
-        </div>
+        <p>Пожалуйста, подождите...</p>
+        <div class="loader"></div>
     </div>
 
     <script>
-        document.getElementById('verifyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const msgDiv = document.getElementById('message');
-            
-            msgDiv.innerHTML = '⏳ Проверка...';
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        
+        async function verify() {
+            if (!token) {
+                document.getElementById('content').innerHTML = `
+                    <div class="icon">❌</div>
+                    <h2>Неверная ссылка</h2>
+                    <p>Токен подтверждения отсутствует</p>
+                    <a href="/login.html" class="btn">Вернуться ко входу</a>
+                `;
+                return;
+            }
             
             try {
-                // Сначала логинимся
-                const res = await fetch('/api/auth?action=login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login: username, password })
-                });
+                const res = await fetch(`/api/verify-email?token=${token}`);
                 const data = await res.json();
                 
-                if (!res.ok) throw new Error(data.error);
-                
-                // Если успешно вошли, подтверждаем email
-                const verifyRes = await fetch('/api/verify-email-auto', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: data.id })
-                });
-                
-                if (verifyRes.ok) {
-                    msgDiv.innerHTML = '✅ Email подтверждён! Теперь вы можете войти.';
-                    msgDiv.className = 'success';
-                    setTimeout(() => window.location.href = '/login.html', 2000);
+                if (res.ok) {
+                    document.getElementById('content').innerHTML = `
+                        <div class="icon">✅</div>
+                        <h2>Email подтверждён!</h2>
+                        <p>${data.message || 'Теперь вы можете войти в аккаунт.'}</p>
+                        <a href="/login.html" class="btn">Перейти ко входу</a>
+                    `;
                 } else {
-                    msgDiv.innerHTML = '❌ Не удалось подтвердить email. Попробуйте позже.';
+                    document.getElementById('content').innerHTML = `
+                        <div class="icon">❌</div>
+                        <h2>Ошибка</h2>
+                        <p>${data.error || 'Не удалось подтвердить email'}</p>
+                        <a href="/login.html" class="btn">Вернуться ко входу</a>
+                    `;
                 }
             } catch (error) {
-                msgDiv.innerHTML = '❌ ' + error.message;
+                document.getElementById('content').innerHTML = `
+                    <div class="icon">❌</div>
+                    <h2>Ошибка</h2>
+                    <p>Не удалось подключиться к серверу</p>
+                    <a href="/login.html" class="btn">Вернуться ко входу</a>
+                `;
             }
-        });
+        }
+        
+        verify();
     </script>
 </body>
 </html>
