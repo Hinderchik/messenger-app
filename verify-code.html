@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение email - c.c Messenger</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+        }
+        .icon { font-size: 64px; margin-bottom: 20px; }
+        h2 { margin-bottom: 10px; color: #333; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+        .code-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .code-input {
+            width: 50px;
+            height: 60px;
+            font-size: 28px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            background: #f9f9f9;
+            font-weight: 600;
+        }
+        .code-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .resend {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .resend a {
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .message { margin-top: 16px; font-size: 14px; }
+        .error { color: #ef4444; }
+        .success { color: #4ade80; }
+        .link { margin-top: 20px; }
+        .link a { color: #667eea; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">📧</div>
+        <h2>Подтверждение email</h2>
+        <div class="subtitle" id="emailDisplay">Введите код из письма</div>
+        <div class="code-inputs" id="codeInputs">
+            <input type="text" maxlength="1" class="code-input" id="code1" autofocus>
+            <input type="text" maxlength="1" class="code-input" id="code2">
+            <input type="text" maxlength="1" class="code-input" id="code3">
+            <input type="text" maxlength="1" class="code-input" id="code4">
+            <input type="text" maxlength="1" class="code-input" id="code5">
+            <input type="text" maxlength="1" class="code-input" id="code6">
+        </div>
+        <button id="verifyBtn">Подтвердить</button>
+        <div class="resend">
+            Не пришёл код? <a id="resendBtn">Отправить повторно</a>
+        </div>
+        <div id="message" class="message"></div>
+        <div class="link">
+            <a href="/login.html">← Вернуться ко входу</a>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email');
+        const token = params.get('token');
+        
+        if (email) {
+            document.getElementById('emailDisplay').innerHTML = `Код отправлен на <strong>${email}</strong>`;
+        }
+        
+        // Автоматический переход между полями
+        const inputs = document.querySelectorAll('.code-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < 5) {
+                    inputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+        
+        async function verifyCode() {
+            const code = Array.from(inputs).map(i => i.value).join('');
+            if (code.length !== 6) {
+                document.getElementById('message').innerHTML = '❌ Введите 6-значный код';
+                document.getElementById('message').className = 'message error';
+                return;
+            }
+            
+            document.getElementById('message').innerHTML = '⏳ Проверка...';
+            
+            try {
+                const res = await fetch('/api/verify-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, email, token })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    document.getElementById('message').innerHTML = '✅ ' + data.message;
+                    document.getElementById('message').className = 'message success';
+                    setTimeout(() => window.location.href = '/login.html', 2000);
+                } else {
+                    document.getElementById('message').innerHTML = '❌ ' + data.error;
+                    document.getElementById('message').className = 'message error';
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = '❌ Ошибка соединения';
+                document.getElementById('message').className = 'message error';
+            }
+        }
+        
+        document.getElementById('verifyBtn').onclick = verifyCode;
+        
+        document.getElementById('resendBtn').onclick = async () => {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = '⏳ Отправка...';
+            
+            try {
+                const res = await fetch('/api/send-verification-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    msgDiv.innerHTML = '✅ ' + data.message;
+                    msgDiv.className = 'message success';
+                } else {
+                    msgDiv.innerHTML = '❌ ' + data.error;
+                    msgDiv.className = 'message error';
+                }
+            } catch (error) {
+                msgDiv.innerHTML = '❌ Ошибка соединения';
+                msgDiv.className = 'message error';
+            }
+        };
+        
+        // Если есть токен в URL, отправляем запрос на подтверждение
+        if (token) {
+            verifyCode();
+        }
+    </script>
+</body>
+</html>

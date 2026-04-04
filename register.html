@@ -48,7 +48,7 @@
         .success { color: #4ade80; text-align: center; margin-top: 16px; font-size: 14px; }
         .link { text-align: center; margin-top: 20px; color: #666; }
         .link a { color: #667eea; text-decoration: none; }
-        .optional-badge { font-size: 11px; color: #888; margin-top: -12px; margin-bottom: 16px; text-align: right; }
+        #codeSection { text-align: center; } #verifyCode { width: 100%; padding: 14px; margin-bottom: 16px; border: 1px solid #ddd; border-radius: 12px; font-size: 24px; text-align: center; letter-spacing: 4px; } .optional-badge { font-size: 11px; color: #888; margin-top: -12px; margin-bottom: 16px; text-align: right; }
     </style>
 </head>
 <body>
@@ -97,3 +97,113 @@
     </script>
 </body>
 </html>
+    <script>
+        let verificationCode = null;
+        let userEmail = null;
+        
+        // После успешной регистрации показываем поле для кода
+        async function showCodeInput(email) {
+            userEmail = email;
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('codeSection').style.display = 'block';
+            
+            // Отправляем код на почту
+            await fetch('/api/send-verification-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+        }
+        
+        // Обработчик регистрации
+        const originalSubmit = document.getElementById('registerForm').onsubmit;
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const msgDiv = document.getElementById('errorMsg');
+            msgDiv.innerHTML = '⏳ Регистрация...';
+            
+            try {
+                const res = await fetch('/api/auth?action=register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email: email || null, password })
+                });
+                const data = await res.json();
+                
+                if (!res.ok) throw new Error(data.error);
+                
+                if (email) {
+                    // Показываем поле для ввода кода
+                    document.getElementById('registerForm').style.display = 'none';
+                    document.getElementById('codeSection').style.display = 'block';
+                    document.getElementById('codeEmail').innerText = email;
+                    
+                    // Отправляем код
+                    await fetch('/api/send-verification-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    msgDiv.innerHTML = '✅ Код отправлен на почту!';
+                    msgDiv.className = 'success';
+                } else {
+                    msgDiv.innerHTML = '✅ Регистрация успешна! Теперь войдите.';
+                    msgDiv.className = 'success';
+                    setTimeout(() => window.location.href = '/login.html', 1500);
+                }
+            } catch (error) {
+                msgDiv.innerHTML = '❌ ' + error.message;
+                msgDiv.className = 'error';
+            }
+        });
+        
+        // Подтверждение кода
+        window.verifyCode = async function() {
+            const code = document.getElementById('verifyCode').value;
+            const msgDiv = document.getElementById('codeMessage');
+            
+            if (!code || code.length !== 6) {
+                msgDiv.innerHTML = '❌ Введите 6-значный код';
+                return;
+            }
+            
+            msgDiv.innerHTML = '⏳ Проверка...';
+            
+            try {
+                const res = await fetch('/api/verify-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, email: userEmail })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    msgDiv.innerHTML = '✅ Email подтверждён! Перенаправление...';
+                    msgDiv.className = 'success';
+                    setTimeout(() => window.location.href = '/login.html', 1500);
+                } else {
+                    msgDiv.innerHTML = '❌ ' + data.error;
+                    msgDiv.className = 'error';
+                }
+            } catch (error) {
+                msgDiv.innerHTML = '❌ Ошибка соединения';
+                msgDiv.className = 'error';
+            }
+        };
+    </script>
+    
+    <div id="codeSection" style="display: none;">
+        <div class="logo">🔐</div>
+        <h2>Подтверждение email</h2>
+        <p>Код отправлен на <strong id="codeEmail"></strong></p>
+        <input type="text" id="verifyCode" placeholder="6-значный код" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 4px;">
+        <button onclick="verifyCode()">Подтвердить</button>
+        <div id="codeMessage" class="error" style="margin-top: 16px;"></div>
+        <div class="link" style="margin-top: 16px;">
+            <a href="#" onclick="fetch('/api/send-verification-code', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: userEmail})}); alert('Код отправлен повторно');">Отправить код повторно</a>
+        </div>
+    </div>
