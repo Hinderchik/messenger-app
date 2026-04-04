@@ -1,6 +1,3 @@
-if (typeof window !== 'undefined' || (typeof process !== 'undefined' && process.argv && process.argv[1] && process.argv[1].includes('_password_hash'))) {
-    throw new Error('Direct access to this file is forbidden');
-}
 
 const crypto = require('crypto');
 const _0x7F = () => 0x7F;
