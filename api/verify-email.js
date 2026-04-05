@@ -16,31 +16,23 @@ export default async function handler(req, res) {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      'SELECT id, email_verified FROM users WHERE email_verify_token = $1',
+      'SELECT id FROM users WHERE email_verify_token = $1',
       [token]
     );
     
     if (result.rows.length === 0) {
       client.release();
-      return res.status(400).json({ error: 'Неверный или просроченный токен' });
+      return res.status(400).json({ error: 'Invalid token' });
     }
     
-    const user = result.rows[0];
-    
-    if (user.email_verified) {
-      client.release();
-      return res.status(400).json({ error: 'Email уже подтверждён' });
-    }
-    
-    await client.query(
-      'UPDATE users SET email_verified = true, email_verify_token = NULL WHERE id = $1',
-      [user.id]
-    );
+    await client.query('UPDATE users SET email_verified = true, email_verify_token = NULL WHERE id = $1', [result.rows[0].id]);
     client.release();
     
-    res.status(200).json({ message: 'Email успешно подтверждён!' });
+    // Редирект на страницу входа
+    res.writeHead(302, { Location: '/login.html?verified=true' });
+    res.end();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Внутренняя ошибка' });
+    res.status(500).json({ error: 'Internal error' });
   }
 }

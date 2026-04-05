@@ -1,6 +1,7 @@
 import pg from 'pg';
 import crypto from 'crypto';
 import { hashPassword, verifyPassword } from './_password_hash.js';
+import { sendVerificationEmail } from './_email.js';
 
 const { Pool } = pg;
 const pool = new Pool({
@@ -12,27 +13,17 @@ export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const action = url.searchParams.get('action');
   
-  console.log('Auth action:', action, req.method);
-  
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   
   // REGISTER
   if (action === 'register') {
     const { username, email, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password required' });
-    }
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     
     try {
       const client = await pool.connect();
@@ -43,20 +34,24 @@ export default async function handler(req, res) {
       }
       
       const { hash, chainId, salt } = await hashPassword(password);
-      const verifyToken = (email && email.trim()) ? crypto.randomBytes(32).toString('hex') : null;
+      const verifyToken = crypto.randomBytes(32).toString('hex');
       
       const result = await client.query(
         `INSERT INTO users (username, email, password_hash, password_chain, password_salt, email_verify_token, email_verified, online, last_seen)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW())
+         VALUES ($1, $2, $3, $4, $5, $6, false, true, NOW())
          RETURNING id, username`,
-        [username, email || null, hash, chainId, salt, verifyToken, !verifyToken]
+        [username, email || null, hash, chainId, salt, verifyToken]
       );
       client.release();
       
+      if (email) {
+        await sendVerificationEmail(email, username, verifyToken);
+      }
+      
       res.status(200).json({ id: result.rows[0].id, username: result.rows[0].username });
     } catch (error) {
-      console.error('Register error:', error);
-      res.status(500).json({ error: error.message || 'Internal error' });
+      console.error(error);
+      res.status(500).json({ error: 'Internal error' });
     }
     return;
   }
@@ -64,10 +59,7 @@ export default async function handler(req, res) {
   // LOGIN
   if (action === 'login') {
     const { login, password } = req.body;
-    
-    if (!login || !password) {
-      return res.status(400).json({ error: 'Login and password required' });
-    }
+    if (!login || !password) return res.status(400).json({ error: 'Login and password required' });
     
     try {
       const client = await pool.connect();
@@ -91,7 +83,7 @@ export default async function handler(req, res) {
       
       if (!user.email_verified && user.email) {
         client.release();
-        return res.status(401).json({ error: 'Please verify email first', needsVerification: true });
+        return res.status(401).json({ error: 'Please verify email first', needsVerification: true, email: user.email });
       }
       
       await client.query('UPDATE users SET online = true, last_seen = NOW() WHERE id = $1', [user.id]);
@@ -99,11 +91,11 @@ export default async function handler(req, res) {
       
       res.status(200).json({ id: user.id, username: user.username, email: user.email, emailVerified: user.email_verified });
     } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ error: error.message || 'Internal error' });
+      console.error(error);
+      res.status(500).json({ error: 'Internal error' });
     }
     return;
   }
   
-  res.status(400).json({ error: 'Invalid action. Use ?action=register or ?action=login' });
+  res.status(400).json({ error: 'Invalid action' });
 }
