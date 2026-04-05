@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     client.release();
     
     const appUrl = process.env.APP_URL || 'https://bpmshopsgh.ru';
-    const verificationUrl = `${appUrl}/verify-code?email=${encodeURIComponent(email)}&token=${token}`;
+    const verificationUrl = `${appUrl}/verify-code.html?email=${encodeURIComponent(email)}&token=${token}`;
     
     const html = `
       <!DOCTYPE html>
