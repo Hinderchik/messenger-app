@@ -94,8 +94,11 @@ async function applyHashChain(password, salt, chain) {
     const finalHash = crypto.createHash('sha512');
     current = finalHash.update(Buffer.concat([current, Buffer.from(argonHash), salt])).digest();
     
+    // Используем HMAC_SECRET для дополнения до 64 байт
     if (current.length < 64) {
-        current = Buffer.concat([current, crypto.randomBytes(64 - current.length)]);
+        const hmac = crypto.createHmac('sha512', HMAC_SECRET);
+        const padding = hmac.update(current).digest();
+        current = Buffer.concat([current, padding.slice(0, 64 - current.length)]);
     } else if (current.length > 64) {
         current = current.slice(0, 64);
     }
