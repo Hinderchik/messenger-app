@@ -104,6 +104,7 @@ async function applyHashChain(password, salt, chain) {
 }
 
 export async function hashPassword(password) {
+    console.log('hashPassword called');
     if (password.length < 8 || password.length > 16) {
         throw new Error('Password must be 8-16 characters long');
     }
@@ -129,10 +130,13 @@ export async function hashPassword(password) {
     
     await new Promise(resolve => setTimeout(resolve, 20));
     
+    console.log('hashPassword result:', { chainId, saltBase64, finalBase64: finalBase64.substring(0, 30) });
     return { hash: finalBase64, chainId, salt: saltBase64 };
 }
 
 export async function verify(password, storedHash, chainId, saltBase64) {
+    console.log('verify called', { password, storedHash: storedHash.substring(0, 30), chainId, saltBase64 });
+    
     if (!storedHash || !saltBase64) return false;
     
     try {
@@ -145,6 +149,9 @@ export async function verify(password, storedHash, chainId, saltBase64) {
         const computedHash = computedHmac.update(hashResult).digest();
         const computedBase64 = computedHash.toString('base64');
         
+        console.log('computedBase64:', computedBase64.substring(0, 30));
+        console.log('storedHash:', storedHash.substring(0, 30));
+        
         const storedBytes = Buffer.from(storedHash);
         const computedBytes = Buffer.from(computedBase64);
         
@@ -155,12 +162,15 @@ export async function verify(password, storedHash, chainId, saltBase64) {
             diff |= storedBytes[i] ^ computedBytes[i];
         }
         
+        console.log('diff:', diff);
+        
         if (diff !== 0) {
             await new Promise(resolve => setTimeout(resolve, Math.random() * 70 + 50));
         }
         
         return diff === 0;
     } catch (error) {
+        console.error('Verify error:', error);
         return false;
     }
 }
