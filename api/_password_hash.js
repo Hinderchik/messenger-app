@@ -1,10 +1,10 @@
-const crypto = require('crypto');
-const argon2 = require('argon2');
+import crypto from 'crypto';
+import argon2 from 'argon2';
 
 let HMAC_SECRET = process.env.HMAC_SECRET;
 if (!HMAC_SECRET) {
     HMAC_SECRET = crypto.randomBytes(32).toString('hex');
-    console.log('⚠️  WARNING: Using generated HMAC secret! Set HMAC_SECRET environment variable.');
+    console.log('⚠️  WARNING: Using generated HMAC secret!');
 }
 HMAC_SECRET = Buffer.from(HMAC_SECRET, 'hex');
 
