@@ -1,6 +1,6 @@
 import pg from 'pg';
 import crypto from 'crypto';
-import { hashPassword, verifyPassword } from './_password_hash.js';
+import { register, verify } from './_password_hash.js';
 import { sendVerificationEmail } from './_email.js';
 
 const { Pool } = pg;
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'User already exists' });
       }
       
-      const { hash, chainId, salt } = await hashPassword(password);
+      const { hash, chainId, salt } = await register(password);
       const verifyToken = crypto.randomBytes(32).toString('hex');
       
       const result = await client.query(
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       }
       
       const user = result.rows[0];
-      const isValid = await verifyPassword(password, user.password_hash, user.password_chain, user.password_salt);
+      const isValid = await verify(password, user.password_hash, user.password_chain, user.password_salt);
       
       if (!isValid) {
         client.release();
