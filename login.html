@@ -23,15 +23,7 @@
             max-width: 400px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .logo img {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-        }
+        .logo { font-size: 48px; text-align: center; margin-bottom: 20px; }
         h2 { text-align: center; margin-bottom: 30px; color: #333; }
         input {
             width: 100%;
@@ -56,6 +48,8 @@
         .success { color: #4ade80; text-align: center; margin-top: 16px; font-size: 14px; }
         .link { text-align: center; margin-top: 20px; color: #666; }
         .link a { color: #667eea; text-decoration: none; }
+        .forgot-link { text-align: center; margin-top: 12px; }
+        .forgot-link a { color: #999; font-size: 14px; text-decoration: none; }
         .verify-link {
             text-align: center;
             margin-top: 16px;
@@ -77,9 +71,7 @@
 </head>
 <body>
     <div class="form-card">
-        <div class="logo">
-            <img src="/public/logo.png" alt="c.c Messenger">
-        </div>
+        <div class="logo">💬</div>
         <h2>Вход в c.c Messenger</h2>
         <form id="loginForm">
             <input type="text" id="login" placeholder="Имя пользователя или Email" required>
@@ -92,6 +84,9 @@
         </div>
         <div class="resend-link" id="resendLink" style="display: none;">
             <a id="resendBtn">📧 Отправить письмо повторно</a>
+        </div>
+        <div class="forgot-link">
+            <a href="#" id="forgotBtn">Забыли пароль?</a>
         </div>
         <div class="link">
             Нет аккаунта? <a href="/register.html">Зарегистрироваться</a>
@@ -176,6 +171,16 @@
                 document.getElementById('message').innerHTML = '❌ Ошибка отправки';
             } finally {
                 btn.textContent = '📧 Отправить письмо повторно';
+            }
+        };
+        
+        document.getElementById('forgotBtn').onclick = (e) => {
+            e.preventDefault();
+            const login = document.getElementById('login').value;
+            if (login) {
+                window.location.href = `/reset-password.html?login=${encodeURIComponent(login)}`;
+            } else {
+                alert('Введите имя пользователя');
             }
         };
     </script>
