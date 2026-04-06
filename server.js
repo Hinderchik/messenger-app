@@ -1,8 +1,13 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import pg from 'pg';
 import crypto from 'crypto';
 import { register, verify } from './api/_password_hash.js';
 import { sendVerificationEmail } from './api/_email.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const { Pool } = pg;
@@ -13,8 +18,14 @@ const pool = new Pool({
 });
 
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(__dirname));
 
+// Корневой путь
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// API
 app.post('/api/auth', async (req, res) => {
   const { action } = req.query;
   const { username, email, password, login } = req.body;
