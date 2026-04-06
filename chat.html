@@ -460,7 +460,7 @@
             });
             if (res.ok) {
                 alert('Группа создана');
-                loadChats();
+                loadЧаты();
             }
         }
         
@@ -476,25 +476,25 @@
             });
             if (res.ok) {
                 alert('Канал создан');
-                loadChats();
+                loadЧаты();
             }
         }
         
         // Ответ на сообщение (комментарий)
-        let replyToMessage = null;
-        function replyToMessage(messageId, text) {
-            replyToMessage = messageId;
+        let replyToСообщение = null;
+        function replyToСообщение(messageId, text) {
+            replyToСообщение = messageId;
             document.getElementById('messageInput').placeholder = 'Ответ на сообщение...';
         }
         
-        async function sendMessageWithReply() {
+        async function sendСообщениеWithReply() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if (!text || !currentChatId) return;
             
-            const url = replyToMessage ? `${API_URL}/api/core?action=reply-message` : `${API_URL}/api/messages`;
-            const body = replyToMessage ? 
-                { messageId: replyToMessage, userId: currentUserId, text } :
+            const url = replyToСообщение ? `${API_URL}/api/core?action=reply-message` : `${API_URL}/api/messages`;
+            const body = replyToСообщение ? 
+                { messageId: replyToСообщение, userId: currentUserId, text } :
                 { chatId: currentChatId, fromId: currentUserId, text };
             
             try {
@@ -505,10 +505,10 @@
                 });
                 if (res.ok) {
                     input.value = '';
-                    replyToMessage = null;
+                    replyToСообщение = null;
                     document.getElementById('messageInput').placeholder = 'Сообщение...';
-                    await loadMessages();
-                    loadChats();
+                    await loadСообщениеs();
+                    loadЧаты();
                 }
             } catch(e) { console.error(e); }
         }
@@ -529,7 +529,7 @@
             currentChatType = type;
             document.getElementById('chatName').innerText = name;
             document.getElementById('chatScreen').classList.add('open');
-            loadMessages();
+            loadСообщениеs();
         }
         
         document.getElementById('backBtn').onclick = () => {
@@ -556,7 +556,7 @@
             }
         };
         
-        async function loadChats() {
+        async function loadЧаты() {
             try {
                 const res = await fetch(`${API_URL}/api/core?action=chats&userId=${currentUserId}`);
                 const chats = await res.json();
@@ -580,7 +580,7 @@
             } catch(e) { console.error(e); }
         }
         
-        async function loadContacts() {
+        async function loadКонтакты() {
             try {
                 const res = await fetch(`${API_URL}/api/core?action=users&userId=${currentUserId}`);
                 const users = await res.json();
@@ -600,7 +600,7 @@
             } catch(e) { console.error(e); }
         }
         
-        async function loadGroups() {
+        async function loadГруппы() {
             try {
                 const res = await fetch(`${API_URL}/api/core?action=chats&userId=${currentUserId}&type=group`);
                 const groups = await res.json();
@@ -617,7 +617,7 @@
             } catch(e) { console.error(e); }
         }
         
-        async function loadChannels() {
+        async function loadКаналы() {
             try {
                 const res = await fetch(`${API_URL}/api/core?action=chats&userId=${currentUserId}&type=channel`);
                 const channels = await res.json();
@@ -647,11 +647,11 @@
                 });
                 const data = await res.json();
                 if (data.chatId) openChat(data.chatId, userName, 'private');
-                loadChats();
+                loadЧаты();
             } catch(e) { console.error(e); }
         }
         
-        async function loadMessages() {
+        async function loadСообщениеs() {
             if (!currentChatId) return;
             try {
                 const res = await fetch(`${API_URL}/api/core?action=messages&chatId=${currentChatId}&limit=50`);
@@ -662,7 +662,7 @@
                         container.innerHTML = '<div class="empty-chat">Нет сообщений</div>';
                     } else {
                         container.innerHTML = messages.map(msg => `
-                            <div class="message ${msg.from_id === currentUserId ? 'sent' : 'received'}" onclick="replyToMessage(${msg.id}, '${escapeHtml(msg.text)}')">
+                            <div class="message ${msg.from_id === currentUserId ? 'sent' : 'received'}" onclick="replyToСообщение(${msg.id}, '${escapeHtml(msg.text)}')">
                                 ${msg.reply_to ? `<div class="reply-indicator">↩️ Ответ на сообщение</div>` : ''}
                                 <div class="bubble">${escapeHtml(msg.text || '[Файл]')}</div>
                                 <div class="time">${formatTime(msg.created_at)}</div>
@@ -674,9 +674,9 @@
             } catch(e) { console.error(e); }
         }
         
-        async function sendMessage() {
-            if (replyToMessage) {
-                await sendMessageWithReply();
+        async function sendСообщение() {
+            if (replyToСообщение) {
+                await sendСообщениеWithReply();
             } else {
                 const input = document.getElementById('messageInput');
                 const text = input.value.trim();
@@ -689,8 +689,8 @@
                     });
                     if (res.ok) {
                         input.value = '';
-                        await loadMessages();
-                        loadChats();
+                        await loadСообщениеs();
+                        loadЧаты();
                     }
                 } catch(e) { console.error(e); }
             }
@@ -714,16 +714,16 @@
                     contactsList.style.display = 'none';
                     groupsList.style.display = 'none';
                     channelsList.style.display = 'none';
-                    if (tabName === 'chats') { chatsList.style.display = 'block'; loadChats(); }
-                    else if (tabName === 'contacts') { contactsList.style.display = 'block'; loadContacts(); }
-                    else if (tabName === 'groups') { groupsList.style.display = 'block'; loadGroups(); }
-                    else if (tabName === 'channels') { channelsList.style.display = 'block'; loadChannels(); }
+                    if (tabName === 'chats') { chatsList.style.display = 'block'; loadЧаты(); }
+                    else if (tabName === 'contacts') { contactsList.style.display = 'block'; loadКонтакты(); }
+                    else if (tabName === 'groups') { groupsList.style.display = 'block'; loadГруппы(); }
+                    else if (tabName === 'channels') { channelsList.style.display = 'block'; loadКаналы(); }
                 };
             });
         }
         
-        document.getElementById('sendBtn').onclick = sendMessage;
-        document.getElementById('messageInput').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+        document.getElementById('sendBtn').onclick = sendСообщение;
+        document.getElementById('messageInput').onkeypress = (e) => { if (e.key === 'Enter') sendСообщение(); };
         
         // FAB кнопки для создания групп/каналов
         const fabContainer = document.createElement('div');
@@ -766,8 +766,8 @@
         document.body.appendChild(fabContainer);
         
         setupTabs();
-        loadChats();
-        setInterval(() => { if (currentChatId) loadMessages(); loadChats(); }, 3000);
+        loadЧаты();
+        setInterval(() => { if (currentChatId) loadСообщениеs(); loadЧаты(); }, 3000);
     </script>
 </body>
 </html>
