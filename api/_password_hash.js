@@ -106,7 +106,7 @@ async function applyHashChain(password, salt, chain) {
     return current;
 }
 
-async function register(password) {
+export async function register(password) {
     if (password.length < 8 || password.length > 16) {
         throw new Error('Password must be 8-16 characters long');
     }
@@ -135,7 +135,7 @@ async function register(password) {
     return { hash: finalBase64, chainId, salt: saltBase64 };
 }
 
-async function verify(password, storedHash, chainId, saltBase64) {
+export async function verify(password, storedHash, chainId, saltBase64) {
     if (!storedHash || !saltBase64) return false;
     
     try {
@@ -167,35 +167,3 @@ async function verify(password, storedHash, chainId, saltBase64) {
         return false;
     }
 }
-
-class RateLimiter {
-    constructor(maxRequests = 10, timeWindow = 60) {
-        this.maxRequests = maxRequests;
-        this.timeWindow = timeWindow;
-        this.requests = new Map();
-    }
-    
-    isAllowed(ip) {
-        const now = Date.now() / 1000;
-        const timestamps = this.requests.get(ip) || [];
-        const validTimestamps = timestamps.filter(t => now - t < this.timeWindow);
-        
-        if (validTimestamps.length >= this.maxRequests) return false;
-        
-        validTimestamps.push(now);
-        this.requests.set(ip, validTimestamps);
-        return true;
-    }
-}
-
-const rateLimiter = new RateLimiter(5, 10);
-
-async function verifyWithRateLimit(password, storedHash, chainId, saltBase64, clientIp = 'default') {
-    if (!rateLimiter.isAllowed(clientIp)) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return false;
-    }
-    return verify(password, storedHash, chainId, saltBase64);
-}
-
-module.exports = { register, verify, verifyWithRateLimit, getChainById };
