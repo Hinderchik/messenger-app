@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import argon2 from 'argon2';
 
 let HMAC_SECRET = process.env.HMAC_SECRET;
 if (!HMAC_SECRET) {
@@ -62,7 +61,6 @@ async function applyHashChain(password, salt, chain) {
     let current = Buffer.from(password, 'utf8');
     
     for (let idx = 0; idx < chain.length; idx++) {
-        const startTime = Date.now();
         const funcName = chain[idx][0];
         
         if (funcName === 'sha256') {
@@ -78,23 +76,16 @@ async function applyHashChain(password, salt, chain) {
             current = customTransform(current, salt, HMAC_SECRET, idx);
         }
         
-        const elapsed = Date.now() - startTime;
-        if (elapsed < 15) {
-            await new Promise(resolve => setTimeout(resolve, 15 - elapsed));
+        // Искусственная задержка (без random)
+        for (let i = 0; i < 10000; i++) {
+            const _ = i * i;
         }
     }
     
-    const argonHash = await argon2.hash(current.toString('hex') + salt.toString('hex'), {
-        type: argon2.argon2id,
-        timeCost: 3,
-        memoryCost: 65536,
-        parallelism: 2
-    });
+    // Финальный HMAC (без Argon2)
+    const finalHmac = crypto.createHmac('sha512', HMAC_SECRET);
+    current = finalHmac.update(current).digest();
     
-    const finalHash = crypto.createHash('sha512');
-    current = finalHash.update(Buffer.concat([current, Buffer.from(argonHash), salt])).digest();
-    
-    // Используем HMAC_SECRET для дополнения до 64 байт
     if (current.length < 64) {
         const hmac = crypto.createHmac('sha512', HMAC_SECRET);
         const padding = hmac.update(current).digest();
@@ -107,7 +98,6 @@ async function applyHashChain(password, salt, chain) {
 }
 
 export async function hashPassword(password) {
-    console.log('hashPassword called');
     if (password.length < 8 || password.length > 16) {
         throw new Error('Password must be 8-16 characters long');
     }
@@ -126,20 +116,14 @@ export async function hashPassword(password) {
     const chain = getChainById(chainId);
     
     const hashResult = await applyHashChain(password, salt, chain);
-    
-    const finalHmac = crypto.createHmac('sha512', HMAC_SECRET);
-    const finalHash = finalHmac.update(hashResult).digest();
-    const finalBase64 = finalHash.toString('base64');
+    const finalBase64 = hashResult.toString('base64');
     
     await new Promise(resolve => setTimeout(resolve, 20));
     
-    console.log('hashPassword result:', { chainId, saltBase64, finalBase64: finalBase64.substring(0, 30) });
     return { hash: finalBase64, chainId, salt: saltBase64 };
 }
 
 export async function verify(password, storedHash, chainId, saltBase64) {
-    console.log('verify called', { password, storedHash: storedHash.substring(0, 30), chainId, saltBase64 });
-    
     if (!storedHash || !saltBase64) return false;
     
     try {
@@ -147,13 +131,7 @@ export async function verify(password, storedHash, chainId, saltBase64) {
         const chain = getChainById(chainId);
         
         const hashResult = await applyHashChain(password, salt, chain);
-        
-        const computedHmac = crypto.createHmac('sha512', HMAC_SECRET);
-        const computedHash = computedHmac.update(hashResult).digest();
-        const computedBase64 = computedHash.toString('base64');
-        
-        console.log('computedBase64:', computedBase64.substring(0, 30));
-        console.log('storedHash:', storedHash.substring(0, 30));
+        const computedBase64 = hashResult.toString('base64');
         
         const storedBytes = Buffer.from(storedHash);
         const computedBytes = Buffer.from(computedBase64);
@@ -165,15 +143,8 @@ export async function verify(password, storedHash, chainId, saltBase64) {
             diff |= storedBytes[i] ^ computedBytes[i];
         }
         
-        console.log('diff:', diff);
-        
-        if (diff !== 0) {
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 70 + 50));
-        }
-        
         return diff === 0;
     } catch (error) {
-        console.error('Verify error:', error);
         return false;
     }
 }
