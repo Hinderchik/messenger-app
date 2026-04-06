@@ -1,12 +1,17 @@
 {
+  "version": 2,
   "routes": [
-    { "src": "/api/auth", "dest": "/api/auth.js" },
-    { "src": "/api/ping", "dest": "/api/ping.js" },
-    { "src": "/api/core", "dest": "/api/core.js" },
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/register", "dest": "/register.html" },
+    { "src": "/chat", "dest": "/chat.html" },
+    { "src": "/settings", "dest": "/settings.html" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*\\.html)", "dest": "/$1" },
     { "src": "/(.*\\.css)", "dest": "/$1" },
     { "src": "/(.*\\.js)", "dest": "/$1" },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/(.*)", "dest": "/404.html", "status": 404 }
+    { "src": "/(.*\\.png)", "dest": "/$1" },
+    { "src": "/(.*\\.ico)", "dest": "/$1" },
+    { "src": "/(.*)", "dest": "/404.html" }
   ]
 }
