@@ -20,7 +20,6 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   
-  // REGISTER
   if (action === 'register') {
     const { username, email, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
@@ -56,7 +55,6 @@ export default async function handler(req, res) {
     return;
   }
   
-  // LOGIN
   if (action === 'login') {
     const { login, password } = req.body;
     if (!login || !password) return res.status(400).json({ error: 'Login and password required' });
