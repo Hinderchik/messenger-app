@@ -14,7 +14,6 @@ function customTransform(data, salt, secret, iteration) {
     for (let i = 0; i < result.length; i++) {
         saltCycle[i] = salt[i % salt.length];
     }
-    
     const secretByte = secret[iteration % secret.length] || 0x42;
     let numRounds = ((iteration % 7) + 3) ^ (secretByte & 0x07);
     if (numRounds < 1) numRounds = 3;
@@ -32,12 +31,10 @@ function customTransform(data, salt, secret, iteration) {
             tmp = (tmp + result[(i + 1) % result.length] + secretByte) & 0xFF;
             result[i] = tmp ^ (round * 19) ^ (secretByte >> 1);
         }
-        
         for (let i = result.length - 1; i >= 0; i--) {
             result[i] = result[i] ^ result[(i + round) % result.length] ^ secretByte;
         }
     }
-    
     return result;
 }
 
@@ -106,7 +103,7 @@ async function applyHashChain(password, salt, chain) {
     return current;
 }
 
-export async function register(password) {
+export async function hashPassword(password) {
     if (password.length < 8 || password.length > 16) {
         throw new Error('Password must be 8-16 characters long');
     }
